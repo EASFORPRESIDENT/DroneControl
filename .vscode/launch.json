@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build my project",
+            "type": "shell",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-g",
+                "${workspaceFolder}/DroneControl/MainTest.cpp",
+                "-o",
+                "${workspaceFolder}/DroneControl/MainTest.out",
+                "-I", "${workspaceFolder}/Desktop/MAVSDK/include/mavsdk",
+                "-L", "${workspaceFolder}/Desktop/MAVSDK/lib",
+                "-lmavsdk"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Generated task by user."
+        }
+    ]
+}
