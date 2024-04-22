@@ -21,7 +21,7 @@ using std::this_thread::sleep_for;
 bool offb_ctrl_body(mavsdk::Offboard& offboard);
 void usage(const std::string& bin_name);
 
-int main(int argc, char** argv)
+int main(int argc, char** argv) //hej från fredrik
 {
     if (argc != 2) {
         usage(argv[0]);
