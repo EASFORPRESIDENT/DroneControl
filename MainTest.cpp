@@ -18,10 +18,11 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
+void custom_control(mavsdk::Offboard& offboard);
 bool offb_ctrl_body(mavsdk::Offboard& offboard);
 void usage(const std::string& bin_name);
 
-int main(int argc, char** argv)
+int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
 {
     if (argc != 2) {
         usage(argv[0]);
@@ -108,6 +109,21 @@ int main(int argc, char** argv)
     return 0;
 }
 
+void custom_control(mavsdk::Offboard& offboard) // Drone control code goes here
+{
+    float degSpeed;
+    std::cout << "Doing offboard stuff!\n";
+	std::cout << "Enter rotational speed: ";
+	std::cin >> degSpeed;
+    Offboard::VelocityBodyYawspeed velocity{};
+    velocity.down_m_s = -1.0f;
+	velocity.forward_m_s = 0.0f;
+	velocity.right_m_s = 0.0f;
+    velocity.yawspeed_deg_s = degSpeed;
+    offboard.set_velocity_body(velocity);
+    sleep_for(seconds(5));
+}
+
 bool offb_ctrl_body(mavsdk::Offboard& offboard)
 {
     std::cout << "Starting Offboard velocity control in body coordinates\n";
@@ -123,49 +139,11 @@ bool offb_ctrl_body(mavsdk::Offboard& offboard)
     }
     std::cout << "Offboard started\n";
 
-	float deg_s_speed;
-    std::cout << "Turn clock-wise and climb\n";
-	std::cout << "Enter rotational speed: ";
-	std::cin >> deg_s_speed;
-    Offboard::VelocityBodyYawspeed cc_and_climb{};
-    cc_and_climb.down_m_s = -1.0f;
-	cc_and_climb.forward_m_s;
-	cc_and_climb.right_m_s;
-    cc_and_climb.yawspeed_deg_s = deg_s_speed;
-    offboard.set_velocity_body(cc_and_climb);
-    sleep_for(seconds(5));
-
-    std::cout << "Turn back anti-clockwise\n";
-    Offboard::VelocityBodyYawspeed ccw{};
-    ccw.down_m_s = -1.0f;
-    ccw.yawspeed_deg_s = -60.0f;
-    offboard.set_velocity_body(ccw);
-    sleep_for(seconds(5));
+    custom_control(offboard);
 
     std::cout << "Wait for a bit\n";
     offboard.set_velocity_body(stay);
-    sleep_for(seconds(2));
-
-    std::cout << "Fly a circle\n";
-    Offboard::VelocityBodyYawspeed circle{};
-    circle.forward_m_s = 5.0f;
-    circle.yawspeed_deg_s = 30.0f;
-    offboard.set_velocity_body(circle);
-    sleep_for(seconds(15));
-
-    std::cout << "Wait for a bit\n";
-    offboard.set_velocity_body(stay);
-    sleep_for(seconds(5));
-
-    std::cout << "Fly a circle sideways\n";
-    circle.right_m_s = -5.0f;
-    circle.yawspeed_deg_s = 30.0f;
-    offboard.set_velocity_body(circle);
-    sleep_for(seconds(15));
-
-    std::cout << "Wait for a bit\n";
-    offboard.set_velocity_body(stay);
-    sleep_for(seconds(8));
+    sleep_for(seconds(3));
 
     offboard_result = offboard.stop();
     if (offboard_result != Offboard::Result::Success) {
