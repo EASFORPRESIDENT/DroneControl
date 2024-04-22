@@ -22,7 +22,7 @@ void custom_control(mavsdk::Offboard& offboard);
 bool offb_ctrl_body(mavsdk::Offboard& offboard);
 void usage(const std::string& bin_name);
 
-int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
+int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540  testststs
 {
     if (argc != 2) {
         usage(argv[0]);
