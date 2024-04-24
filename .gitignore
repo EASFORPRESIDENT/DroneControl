@@ -1,2 +1,4 @@
 MainTest.exe
 MainTest.out
+GazeboPlugin/build
+MAVSDK/build

@@ -64,6 +64,17 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeindex": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "csignal": "cpp",
+        "any": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "coroutine": "cpp",
+        "regex": "cpp",
+        "source_location": "cpp",
+        "fstream": "cpp",
+        "shared_mutex": "cpp",
+        "cfenv": "cpp",
+        "variant": "cpp"
     }
 }

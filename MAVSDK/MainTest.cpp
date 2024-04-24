@@ -9,6 +9,8 @@
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/offboard/offboard.h>
 
+//#include "GazeboPlugin.hpp"
+
 using mavsdk::Mavsdk;
 using mavsdk::ConnectionResult;
 using mavsdk::Offboard;
