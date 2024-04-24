@@ -22,7 +22,7 @@ void custom_control(mavsdk::Offboard& offboard);
 bool offb_ctrl_body(mavsdk::Offboard& offboard);
 void usage(const std::string& bin_name);
 
-int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540  testststs
+int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540 
 {
     if (argc != 2) {
         usage(argv[0]);
@@ -119,8 +119,6 @@ void custom_control(mavsdk::Offboard& offboard) // Drone control code goes here
 	std::cin >> continuecommand;
 
     while(continuecommand == 1){
-
-
     
         std::cout << "Enter down speed speed: ";
         std::cin >> downSpeed;
@@ -131,9 +129,6 @@ void custom_control(mavsdk::Offboard& offboard) // Drone control code goes here
         std::cout << "Enter rotational speed: ";
         std::cin >> degSpeed;
 
-
-
-
         Offboard::VelocityBodyYawspeed velocity{};
         velocity.down_m_s = downSpeed;
         velocity.forward_m_s = forwardSpeed;
@@ -141,6 +136,12 @@ void custom_control(mavsdk::Offboard& offboard) // Drone control code goes here
         velocity.yawspeed_deg_s = degSpeed;
         offboard.set_velocity_body(velocity);
         sleep_for(seconds(5));
+
+        velocity.down_m_s = 0.0f;
+        velocity.forward_m_s = 0.0f;
+        velocity.right_m_s = 0.0f;
+        velocity.yawspeed_deg_s = 0.0f;
+        offboard.set_velocity_body(velocity);
 
         std::cout << "Do you want to enter commands? 1 : yes  2: no";
 	    std::cin >> continuecommand;

@@ -4,9 +4,33 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/include/mavsdk"
+                "/usr/local/include/mavsdk",
+                "/usr/include/gazebo-11",
+                "/usr/include/gz/math7",
+                "/usr/include/sdformat-9.7",
+                "/usr/include/sdformat-9.7",
+                "/usr/include/gz/utils2",
+                "/usr/include/ignition/transport8",
+                "/usr/include/gz/msgs9",
+                "/usr/include/gz/common5",
+                "/opt/ros/humble/include",
+                "/usr/include/ignition/fuel_tools4",
+                "${workspaceFolder}/**",
+                "/usr/include/gazebo-11",
+                "/usr/include/gazebo-11/gazebo"
             ],
             "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "/usr/include/gazebo-7",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "linux-gcc-x64"
