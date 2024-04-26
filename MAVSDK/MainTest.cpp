@@ -10,6 +10,10 @@
 #include <mavsdk/plugins/offboard/offboard.h>
 
 //#include "GazeboPlugin.hpp"
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <iostream>
 
 using mavsdk::Mavsdk;
 using mavsdk::ConnectionResult;
@@ -20,9 +24,18 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
-void custom_control(mavsdk::Offboard& offboard);
-bool offb_ctrl_body(mavsdk::Offboard& offboard);
+void custom_control(mavsdk::Offboard& offboard, SharedData& sharedData);
+bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData& sharedData);
 void usage(const std::string& bin_name);
+
+struct SharedData
+{
+    bool reset;
+    double posX;
+    double posY;
+    double posZ;
+    double posYaw;
+};
 
 int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
 {
@@ -30,6 +43,14 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         usage(argv[0]);
         return 1;
     }
+
+    const char* memoryName = "dronePosition";
+    int shm_fd = shm_open(memoryName, O_RDONLY, 0666);
+    if (shm_fd == -1) {
+        std::cerr << "Shared memory not available." << std::endl;
+        return 1;
+    }
+    SharedData* sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ, MAP_SHARED, shm_fd, 0);
 
     Mavsdk mavsdk{Mavsdk::Configuration{Mavsdk::ComponentType::GroundStation}};
     ConnectionResult connection_result = mavsdk.add_any_connection(argv[1]);
@@ -86,7 +107,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     }
 
     //  using body co-ordinates
-    if (!offb_ctrl_body(offboard)) {
+    if (!offb_ctrl_body(offboard, sharedData)) {
         return 1;
     }
 
@@ -105,14 +126,19 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
 
     // We are relying on auto-disarming but let's keep watching the telemetry for
     // a bit longer.
+
+    munmap(sharedData, sizeof(SharedData));
+    close(shm_fd);
+
     sleep_for(seconds(3));
     std::cout << "Finished...\n";
 
     return 0;
 }
 
-void custom_control(mavsdk::Offboard& offboard) // Drone control code goes here
+void custom_control(mavsdk::Offboard& offboard, SharedData& sharedData) // Drone control code goes here
 {
+    
     float degSpeed;
     std::cout << "Doing offboard stuff!\n";
 	std::cout << "Enter rotational speed: ";
@@ -126,7 +152,7 @@ void custom_control(mavsdk::Offboard& offboard) // Drone control code goes here
     sleep_for(seconds(5));
 }
 
-bool offb_ctrl_body(mavsdk::Offboard& offboard)
+bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData& sharedData)
 {
     std::cout << "Starting Offboard velocity control in body coordinates\n";
 
@@ -141,7 +167,7 @@ bool offb_ctrl_body(mavsdk::Offboard& offboard)
     }
     std::cout << "Offboard started\n";
 
-    custom_control(offboard);
+    custom_control(offboard, sharedData);
 
     std::cout << "Wait for a bit\n";
     offboard.set_velocity_body(stay);

@@ -1,4 +1,9 @@
 #pragma once // Include guard to prevent multiple inclusion
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <semaphore.h>
+#include <iostream>
 
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
@@ -7,6 +12,14 @@
 
 namespace gazebo
 {
+    struct SharedData
+    {
+        bool reset;
+        double posX;
+        double posY;
+        double posZ;
+        double posYaw;
+    };
     class SimulationResetPlugin : public WorldPlugin
     {
     public:
@@ -15,9 +28,14 @@ namespace gazebo
         void ResetWorld();
 
     private:
-        ignition::math::Pose3d RandomPose();
-
+        const char *memoryName;
+        int shm_fd;
+        SharedData* sharedData;
         physics::WorldPtr world;
         event::ConnectionPtr updateConnection;
+        ignition::math::Pose3d RandomPose();
+        void SendDronePosition(ignition::math::Pose3d position);
+        bool CheckReset();
+        ~SimulationResetPlugin();
     };
 }
