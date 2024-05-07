@@ -7,6 +7,11 @@ git clone https://github.com/EASFORPRESIDENT/DroneControl.git
 ## Get MAVSDK
 ```bash
 git clone https://github.com/mavlink/MAVSDK.git
+cd MAVSDK
+git submodule update --init --recursive
+cmake -DCMAKE_BUILD_TYPE=Release -Bbuild/default -H.
+cmake --build build/default -j4
+sudo cmake --build build/default --target install
 ```
 
 ## Add plugin to Gazebo
