@@ -24,10 +24,6 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
-void custom_control(mavsdk::Offboard& offboard, SharedData& sharedData);
-bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData& sharedData);
-void usage(const std::string& bin_name);
-
 struct SharedData
 {
     bool reset;
@@ -37,6 +33,10 @@ struct SharedData
     double posYaw;
 };
 
+void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
+bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
+void usage(const std::string& bin_name);
+
 int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
 {
     if (argc != 2) {
@@ -44,14 +44,19 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         return 1;
     }
 
-    const char* memoryName = "dronePosition";
+    const char* memoryName = "dronePosAndReset";
     int shm_fd = shm_open(memoryName, O_RDONLY, 0666);
     if (shm_fd == -1) {
         std::cerr << "Shared memory not available." << std::endl;
         return 1;
     }
-    SharedData* sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ, MAP_SHARED, shm_fd, 0);
 
+    SharedData* sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ, MAP_SHARED, shm_fd, 0);
+    if (sharedData == MAP_FAILED) {
+        std::cerr << "Memory mapping failed." << std::endl;
+        // Handle error, close shared memory and return or exit
+
+}
     Mavsdk mavsdk{Mavsdk::Configuration{Mavsdk::ComponentType::GroundStation}};
     ConnectionResult connection_result = mavsdk.add_any_connection(argv[1]);
 
@@ -136,23 +141,25 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     return 0;
 }
 
-void custom_control(mavsdk::Offboard& offboard, SharedData& sharedData) // Drone control code goes here
+void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone control code goes here
 {
     
     float degSpeed;
     std::cout << "Doing offboard stuff!\n";
-	std::cout << "Enter rotational speed: ";
-	std::cin >> degSpeed;
+    std::cout << "X: " << sharedData->posX << "\t Y: " << sharedData->posY
+     << "\t Z: " << sharedData->posZ << "\t Yaw: " << sharedData->posYaw << "\n";
     Offboard::VelocityBodyYawspeed velocity{};
     velocity.down_m_s = -1.0f;
-	velocity.forward_m_s = 0.0f;
+	velocity.forward_m_s = 1.0f;
 	velocity.right_m_s = 0.0f;
-    velocity.yawspeed_deg_s = degSpeed;
+    velocity.yawspeed_deg_s = 10;
     offboard.set_velocity_body(velocity);
     sleep_for(seconds(5));
+    std::cout << "X: " << sharedData->posX << "\t Y: " << sharedData->posY
+     << "\t Z: " << sharedData->posZ << "\t Yaw: " << sharedData->posYaw << "\n";
 }
 
-bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData& sharedData)
+bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
 {
     std::cout << "Starting Offboard velocity control in body coordinates\n";
 

@@ -1,5 +1,14 @@
 # Simulation (PX4-Autopilot) guide
 
+```bash
+git clone https://github.com/EASFORPRESIDENT/DroneControl.git
+```
+
+## Get MAVSDK
+```bash
+git clone https://github.com/mavlink/MAVSDK.git
+```
+
 ## Add plugin to Gazebo
 
 Open terminal in PX4-Autopilot folder: 

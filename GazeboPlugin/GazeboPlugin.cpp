@@ -8,12 +8,26 @@ namespace gazebo
 
         // Shared memory
         this->memoryName = "dronePosAndReset";
-        this->shm_fd = shm_open(memoryName, O_CREAT | O_RDWR, 0666);
-        ftruncate(shm_fd, sizeof(SharedData));
-        this->sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+        this->shm_fd = shm_open(this->memoryName, O_CREAT | O_RDWR, 0666);
+        if (this->shm_fd == -1) {
+            perror("shm_open");
+            // Handle error, return or exit
+        }
+
+        if (ftruncate(this->shm_fd, sizeof(SharedData)) == -1) {
+            perror("ftruncate");
+            // Handle error, close shared memory and return or exit
+        }
+
+        this->sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, this->shm_fd, 0);
+        if (this->sharedData == MAP_FAILED) {
+            perror("mmap");
+            // Handle error, close shared memory and return or exit
+        }
 
         // Plugin
         this->world = _world;
+        
         // Listen to the update event which is broadcast every simulation iteration.
         this->updateConnection = event::Events::ConnectWorldUpdateBegin(
             std::bind(&SimulationResetPlugin::OnUpdate, this));
@@ -23,10 +37,10 @@ namespace gazebo
     {
         // Logic to reset the world goes here
         static int count = 0;
-        if (++count > 10)
+        if (++count > 100)
         {
-            auto model = this->world->ModelByName("iris").get()->WorldPose();
-            SendDronePosition(model);
+            auto dronePose = this->world->ModelByName("iris").get()->WorldPose();
+            SendDronePosition(dronePose);
             if (CheckReset())
             {
                 ResetWorld();
