@@ -7,22 +7,19 @@ namespace gazebo
         std::cout << "SimulationResetPlugin loaded successfully!" << std::endl;
 
         // Shared memory
-        this->memoryName = "dronePosAndReset";
+        this->memoryName = "dronePoseAndReset";
         this->shm_fd = shm_open(this->memoryName, O_CREAT | O_RDWR, 0666);
         if (this->shm_fd == -1) {
-            perror("shm_open");
-            // Handle error, return or exit
+            std::cerr << RED << "shm_open" << CLEAR << std::endl;
         }
 
         if (ftruncate(this->shm_fd, sizeof(SharedData)) == -1) {
-            perror("ftruncate");
-            // Handle error, close shared memory and return or exit
+            std::cerr << RED << "ftruncate" << CLEAR << std::endl;
         }
 
         this->sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, this->shm_fd, 0);
         if (this->sharedData == MAP_FAILED) {
-            perror("mmap");
-            // Handle error, close shared memory and return or exit
+            std::cerr << RED << "mmap" << CLEAR << std::endl;
         }
 
         // Plugin
@@ -35,7 +32,6 @@ namespace gazebo
 
     void SimulationResetPlugin::OnUpdate()
     {
-        // Logic to reset the world goes here
         static int count = 0;
         if (++count > 100)
         {
@@ -56,6 +52,9 @@ namespace gazebo
         if (model)
         {
             model->SetWorldPose(newPose);
+            this->world.get()->SetPaused(true);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            this->world.get()->SetPaused(false);
         }
         else
         {

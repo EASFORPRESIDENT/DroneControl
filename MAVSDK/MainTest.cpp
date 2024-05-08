@@ -3,17 +3,16 @@
 #include <future>
 #include <iostream>
 #include <thread>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <iostream>
+#include <cerrno>
 
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/action/action.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/offboard/offboard.h>
-
-//#include "GazeboPlugin.hpp"
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#include <iostream>
 
 using mavsdk::Mavsdk;
 using mavsdk::ConnectionResult;
@@ -33,6 +32,7 @@ struct SharedData
     double posYaw;
 };
 
+void print_position(SharedData *sharedData);
 void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
 void usage(const std::string& bin_name);
@@ -44,19 +44,20 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         return 1;
     }
 
-    const char* memoryName = "dronePosAndReset";
-    int shm_fd = shm_open(memoryName, O_RDONLY, 0666);
+    const char* memoryName = "dronePoseAndReset";
+    int shm_fd = shm_open(memoryName, O_RDWR, 0666);
     if (shm_fd == -1) {
-        std::cerr << "Shared memory not available." << std::endl;
+        perror("shm_open failed"); // Print an error message specific to shm_open
         return 1;
     }
 
-    SharedData* sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ, MAP_SHARED, shm_fd, 0);
+    SharedData* sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+
     if (sharedData == MAP_FAILED) {
         std::cerr << "Memory mapping failed." << std::endl;
-        // Handle error, close shared memory and return or exit
+        return 1;
+    }
 
-}
     Mavsdk mavsdk{Mavsdk::Configuration{Mavsdk::ComponentType::GroundStation}};
     ConnectionResult connection_result = mavsdk.add_any_connection(argv[1]);
 
@@ -132,6 +133,9 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     // We are relying on auto-disarming but let's keep watching the telemetry for
     // a bit longer.
 
+    std::cout << "X: " << sharedData->posX << "\t Y: " << sharedData->posY
+     << "\t Z: " << sharedData->posZ << "\t Yaw: " << sharedData->posYaw << "\n";
+
     munmap(sharedData, sizeof(SharedData));
     close(shm_fd);
 
@@ -146,17 +150,36 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
     
     float degSpeed;
     std::cout << "Doing offboard stuff!\n";
-    std::cout << "X: " << sharedData->posX << "\t Y: " << sharedData->posY
-     << "\t Z: " << sharedData->posZ << "\t Yaw: " << sharedData->posYaw << "\n";
     Offboard::VelocityBodyYawspeed velocity{};
+    print_position(sharedData);
+
     velocity.down_m_s = -1.0f;
 	velocity.forward_m_s = 1.0f;
 	velocity.right_m_s = 0.0f;
     velocity.yawspeed_deg_s = 10;
     offboard.set_velocity_body(velocity);
     sleep_for(seconds(5));
-    std::cout << "X: " << sharedData->posX << "\t Y: " << sharedData->posY
-     << "\t Z: " << sharedData->posZ << "\t Yaw: " << sharedData->posYaw << "\n";
+    print_position(sharedData);
+
+    std::cout << "Holding position...\n";
+    velocity.down_m_s = 0.0f;
+	velocity.forward_m_s = 0.0f;
+	velocity.right_m_s = 0.0f;
+    velocity.yawspeed_deg_s = 0.0f;
+    offboard.set_velocity_body(velocity);
+    sleep_for(seconds(5));
+    print_position(sharedData);
+
+    std::cout << "Resetting...\n";
+    sharedData->reset = true;
+    sleep_for(seconds(5));
+    print_position(sharedData);
+
+    std::cout << "Flying down...\n";
+    velocity.down_m_s = 1.0f;
+    offboard.set_velocity_body(velocity);
+    sleep_for(seconds(5));
+    print_position(sharedData);
 }
 
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
@@ -186,8 +209,14 @@ bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
         return false;
     }
     std::cout << "Offboard stopped\n";
-
+    
     return true;
+}
+
+void print_position(SharedData *sharedData)
+{
+    std::cout << "X: " << sharedData->posX << "\t Y: " << sharedData->posY
+     << "\t Z: " << sharedData->posZ << "\t Yaw: " << sharedData->posYaw << "\n";
 }
 
 void usage(const std::string& bin_name)

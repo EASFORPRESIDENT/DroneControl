@@ -10,6 +10,9 @@
 #include <ignition/math/Pose3.hh>
 #include <random>
 
+#define RED "\033[31m"
+#define CLEAR "\033[0m"
+
 namespace gazebo
 {
     struct SharedData
