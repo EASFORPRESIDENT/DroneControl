@@ -40,6 +40,7 @@ namespace gazebo
         SharedData* sharedData;
         physics::WorldPtr world;
         event::ConnectionPtr updateConnection;
+        ignition::math::Pose3d dronePose;
         ignition::math::Pose3d RandomPose();
 
         

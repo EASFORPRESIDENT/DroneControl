@@ -22,6 +22,10 @@ namespace gazebo
             std::cerr << RED << "mmap" << CLEAR << std::endl;
         }
 
+        localData = new SharedData();
+
+        sharedData->reset = false;
+
         // Plugin
         this->world = _world;
         
@@ -33,14 +37,15 @@ namespace gazebo
     void SimulationResetPlugin::OnUpdate()
     {
         static int count = 0;
-        if (false)//++count > 150
+        if (++count > 150)
         {
-            auto dronePose = this->world->ModelByName("iris").get()->WorldPose();
-            SetDronePosition(dronePose);
             if (CheckReset())
             {
+                std::cout << "Resetting...\n";
                 ResetWorld();
             }
+            dronePose = this->world->ModelByName("iris").get()->WorldPose();
+            SetDronePosition(dronePose);
             SendSharedData();
             count = 0;
         }
@@ -53,9 +58,9 @@ namespace gazebo
         if (model)
         {
             model->SetWorldPose(newPose);
-            this->world.get()->SetPaused(true);
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            this->world.get()->SetPaused(false);
+            //this->world.get()->SetPaused(true);
+            //std::this_thread::sleep_for(std::chrono::seconds(1));
+            //this->world.get()->SetPaused(false);
         }
         else
         {
@@ -63,6 +68,18 @@ namespace gazebo
         }
     }
 
+    bool SimulationResetPlugin::CheckReset()
+    {
+        switch (sharedData->reset)
+        {
+        case true:
+            localData->reset = false;
+            std::cout << "Exiting CheckReset() with true\n";
+            return true;
+        default:
+            return false;
+        }
+    }
 
     ignition::math::Pose3d SimulationResetPlugin::RandomPose()
     {
@@ -84,22 +101,11 @@ namespace gazebo
         localData->posZ = position.Z();
         localData->posYaw = position.Yaw();
     }
-    bool SimulationResetPlugin::CheckReset()
-    {
-        switch (sharedData->reset)
-        {
-        case true:
-            localData->reset = false;
-            return true;
-        default:
-            return false;
-        }
-    }
 
     void SimulationResetPlugin::SendSharedData()
     {
         // Serialize SharedData struct into a byte array
-        serializeSharedData(*sharedData, buffer);
+        serializeSharedData(*localData, buffer);
 
         // Write serialized data to shared memory
         std::memcpy(sharedData, buffer, sizeof(SharedData));

@@ -47,9 +47,11 @@ def sharedMemorySendReset():
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
-    reset_to_send = struct.pack('?dddd', 1,0,0,0,0)
+    reset_to_send = struct.pack('?dddd', True,0,0,0,0)
 
     mapped_send.write(reset_to_send)
+
+    print("Reset Complete")
 
   # Clean up resources when done
     mapped_send.close()
@@ -166,6 +168,7 @@ class Environment:
 
 
     def reset(self):
+        print("Reseting...")
         reset = 1
 
         sharedMemorySendReset()
@@ -173,7 +176,6 @@ class Environment:
         while reset:
             reset, X_pos, Y_pos = sharedMemoryReceive()
             time.sleep(0.1)
-        
         return X_pos, Y_pos
 
 
@@ -199,6 +201,8 @@ class Environment:
         return next_state, reward, done, {}
 
 env = Environment()
+
+print("Booting AI model...")
 
 # Assuming you have an environment with x, y, and z positions
 num_episodes = 1000
