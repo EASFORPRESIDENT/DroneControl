@@ -22,6 +22,10 @@ namespace gazebo
             std::cerr << RED << "mmap" << CLEAR << std::endl;
         }
 
+        localData = new SharedData();
+
+        sharedData->reset = false;
+
         // Plugin
         this->world = _world;
         
@@ -33,14 +37,16 @@ namespace gazebo
     void SimulationResetPlugin::OnUpdate()
     {
         static int count = 0;
-        if (++count > 100)
+        if (++count > 150)
         {
-            auto dronePose = this->world->ModelByName("iris").get()->WorldPose();
-            SendDronePosition(dronePose);
             if (CheckReset())
             {
+                std::cout << "Resetting...\n";
                 ResetWorld();
             }
+            dronePose = this->world->ModelByName("iris").get()->WorldPose();
+            SetDronePosition(dronePose);
+            SendSharedData();
             count = 0;
         }
     }
@@ -52,9 +58,9 @@ namespace gazebo
         if (model)
         {
             model->SetWorldPose(newPose);
-            this->world.get()->SetPaused(true);
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            this->world.get()->SetPaused(false);
+            //this->world.get()->SetPaused(true);
+            //std::this_thread::sleep_for(std::chrono::seconds(1));
+            //this->world.get()->SetPaused(false);
         }
         else
         {
@@ -62,12 +68,24 @@ namespace gazebo
         }
     }
 
+    bool SimulationResetPlugin::CheckReset()
+    {
+        switch (sharedData->reset)
+        {
+        case true:
+            localData->reset = false;
+            std::cout << "Exiting CheckReset() with true\n";
+            return true;
+        default:
+            return false;
+        }
+    }
 
     ignition::math::Pose3d SimulationResetPlugin::RandomPose()
     {
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<> dis(-10, 10);
+        std::uniform_real_distribution<> dis(-1.5, 1.5);
 
         double x = dis(gen);
         double y = dis(gen);
@@ -76,34 +94,26 @@ namespace gazebo
         return ignition::math::Pose3d(x, y, z, 0, 0, 0);
     }
 
-    void SimulationResetPlugin::SendDronePosition(ignition::math::Pose3d position)
+    void SimulationResetPlugin::SetDronePosition(ignition::math::Pose3d position)
     {
-        sharedData->posX = position.X();
-        sharedData->posY = position.Y();
-        sharedData->posZ = position.Z();
-        sharedData->posYaw = position.Yaw();
+        localData->posX = position.X();
+        localData->posY = position.Y();
+        localData->posZ = position.Z();
+        localData->posYaw = position.Yaw();
+    }
 
+    void SimulationResetPlugin::SendSharedData()
+    {
         // Serialize SharedData struct into a byte array
-        serializeSharedData(*sharedData, buffer);
+        serializeSharedData(*localData, buffer);
 
         // Write serialized data to shared memory
         std::memcpy(sharedData, buffer, sizeof(SharedData));
     }
-    bool SimulationResetPlugin::CheckReset()
-    {
-        switch (sharedData->reset)
-        {
-        case true:
-            sharedData->reset = false;
-            return true;
-        default:
-            return false;
-        }
-    }
 
     void SimulationResetPlugin::serializeSharedData(const SharedData& data, char* buffer)
     {
-    std::memcpy(buffer, &data, sizeof(SharedData));
+        std::memcpy(buffer, &data, sizeof(SharedData));
     }
 
     SimulationResetPlugin::~SimulationResetPlugin()

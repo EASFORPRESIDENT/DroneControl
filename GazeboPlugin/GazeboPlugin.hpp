@@ -36,15 +36,18 @@ namespace gazebo
         int shm_fd;
         char buffer[sizeof(SharedData)];
 
+        SharedData* localData;
         SharedData* sharedData;
         physics::WorldPtr world;
         event::ConnectionPtr updateConnection;
+        ignition::math::Pose3d dronePose;
         ignition::math::Pose3d RandomPose();
 
         
 
         void serializeSharedData(const SharedData& data, char* buffer);
-        void SendDronePosition(ignition::math::Pose3d position);
+        void SetDronePosition(ignition::math::Pose3d position);
+        void SendSharedData();
         bool CheckReset();
         ~SimulationResetPlugin();
     };
