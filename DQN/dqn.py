@@ -35,6 +35,26 @@ def sharedMemoryReceive():
 
     return reset, posX, posY
 
+#Send chosen action through shared memory
+def sharedMemorySendReset():
+
+    # Open the shared memory
+
+    memory_s = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
+
+    # Map the shared memory into the address space
+
+    mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
+
+
+    reset_to_send = struct.pack('?dddd', 1,0,0,0,0)
+
+    mapped_send.write(reset_to_send)
+
+  # Clean up resources when done
+    mapped_send.close()
+    memory_s.close_fd()
+
 
 #Send chosen action through shared memory
 def sharedMemorySend(action):
@@ -147,6 +167,9 @@ class Environment:
 
     def reset(self):
         reset = 1
+
+        sharedMemorySendReset()
+
         while reset:
             reset, X_pos, Y_pos = sharedMemoryReceive()
             time.sleep(0.1)
