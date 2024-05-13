@@ -14,6 +14,9 @@
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/offboard/offboard.h>
 
+#define RED "\033[31m"
+#define CLEAR "\033[0m"
+
 using mavsdk::Mavsdk;
 using mavsdk::ConnectionResult;
 using mavsdk::Offboard;
@@ -40,18 +43,19 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         return 1;
     }
 
-    const char* memoryName = "dronePoseAndReset";
-    int shm_fd = shm_open(memoryName, O_RDWR, 0666);
+    const char* memoryName = "droneAction";
+    int shm_fd = shm_open(memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
     if (shm_fd == -1) {
-        perror("shm_open failed"); // Print an error message specific to shm_open
-        return 1;
+        std::cerr << RED << "shm_open" << CLEAR << std::endl;
     }
 
-    SharedData* sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (ftruncate(shm_fd, sizeof(SharedData)) == -1) {
+        std::cerr << RED << "ftruncate" << CLEAR << std::endl;
+    }
 
+    SharedData *sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (sharedData == MAP_FAILED) {
-        std::cerr << "Memory mapping failed." << std::endl;
-        return 1;
+        std::cerr << RED << "mmap" << CLEAR << std::endl;
     }
 
     Mavsdk mavsdk{Mavsdk::Configuration{Mavsdk::ComponentType::GroundStation}};

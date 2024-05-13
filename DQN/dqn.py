@@ -63,14 +63,14 @@ def sharedMemorySend(action):
 
     # Open the shared memory
 
-    memory_s = posix_ipc.SharedMemory(memory_send, posix_ipc.O_CREAT, size=memory_size)
+    memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
 
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
-    action_to_send = struct.pack('i', action)
+    action_to_send = struct.pack('i?', action, RunLoop)
 
     mapped_send.write(action_to_send)
 
