@@ -2,3 +2,4 @@ MainTest.exe
 MainTest.out
 GazeboPlugin/build
 MAVSDK/build
+.vscode/c_cpp_properties.json

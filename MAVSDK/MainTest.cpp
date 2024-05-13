@@ -228,3 +228,43 @@ void usage(const std::string& bin_name)
               << " For Serial : serial:///path/to/serial/dev[:baudrate]\n"
               << "For example, to connect to the simulator use URL: udp://:14540\n";
 }
+
+Offboard::VelocityBodyYawspeed action_translate(int dqn_action)
+{
+    Offboard::VelocityBodyYawspeed action;
+
+    switch(dqn_action){
+        case 0:
+            action.down_m_s = 0.0f;
+            action.forward_m_s = 0.0f;
+            action.right_m_s = 0.0f;
+            action.yawspeed_deg_s = 0;
+        case 1:
+            action.down_m_s = 0.0f;
+            action.forward_m_s = 1.0f;
+            action.right_m_s = 0.0f;
+            action.yawspeed_deg_s = 0;
+        case 2:
+            action.down_m_s = 0.0f;
+            action.forward_m_s = -1.0f;
+            action.right_m_s = 0.0f;
+            action.yawspeed_deg_s = 0;
+        case 3:
+            action.down_m_s = 0.0f;
+            action.forward_m_s = 0.0f;
+            action.right_m_s = 1.0f;
+            action.yawspeed_deg_s = 0;
+        case 4:
+            action.down_m_s = 0.0f;
+            action.forward_m_s = 0.0f;
+            action.right_m_s = -1.0;
+            action.yawspeed_deg_s = 0;
+        default:
+            action.down_m_s = 0.0f;
+            action.forward_m_s = 0.0f;
+            action.right_m_s = 0.0f;
+            action.yawspeed_deg_s = 0;
+    }
+
+    return action;
+}
