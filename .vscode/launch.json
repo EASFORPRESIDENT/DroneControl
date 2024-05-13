@@ -10,8 +10,10 @@
                 "${workspaceFolder}/DroneControl/MainTest.cpp",
                 "-o",
                 "${workspaceFolder}/DroneControl/MainTest.out",
-                "-I", "${workspaceFolder}/Desktop/MAVSDK/include/mavsdk",
-                "-L", "${workspaceFolder}/Desktop/MAVSDK/lib",
+                "-I",
+                "${workspaceFolder}/Desktop/MAVSDK/include/mavsdk",
+                "-L",
+                "${workspaceFolder}/Desktop/MAVSDK/lib",
                 "-lmavsdk"
             ],
             "group": {
@@ -22,6 +24,34 @@
                 "$gcc"
             ],
             "detail": "Generated task by user."
+        }
+    ],
+    "configurations": [
+        {
+            "name": "C/C++: g++ build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++: g++ build active file",
+            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }

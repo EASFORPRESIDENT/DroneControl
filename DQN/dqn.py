@@ -3,14 +3,14 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import random
-import math
+import time
 import posix_ipc
 import mmap
 import struct
 
 
 # Memory name (should match with C++ code)
-memory_name = "/dronePosAndReset"
+memory_name = "/dronePoseAndReset"
 memory_send = "/droneAction"
 memory_size = 1024
 
@@ -21,6 +21,7 @@ def sharedMemoryReceive():
 
     # Map the shared memory into the address space
     mapped_memory = mmap.mmap(memory.fd, memory.size)
+
 
     # Read serialized data from the shared memory
     serialized_data = mapped_memory.read()
@@ -148,6 +149,7 @@ class Environment:
         reset = 1
         while reset:
             reset, X_pos, Y_pos = sharedMemoryReceive()
+            time.sleep(0.1)
         
         return X_pos, Y_pos
 
@@ -189,7 +191,7 @@ for episode in range(num_episodes):
 
 
         #send action to MAVsdk script through open memory
-        sharedMemorySend(action)
+        #sharedMemorySend(action)
 
         next_state, reward, done, _ = env.step(action,nm_of_steps)
 

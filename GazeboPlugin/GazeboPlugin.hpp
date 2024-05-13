@@ -33,10 +33,16 @@ namespace gazebo
     private:
         const char *memoryName;
         int shm_fd;
+        char buffer[sizeof(SharedData)];
+
         SharedData* sharedData;
         physics::WorldPtr world;
         event::ConnectionPtr updateConnection;
         ignition::math::Pose3d RandomPose();
+
+        
+
+        void serializeSharedData(const SharedData& data, char* buffer);
         void SendDronePosition(ignition::math::Pose3d position);
         bool CheckReset();
         ~SimulationResetPlugin();

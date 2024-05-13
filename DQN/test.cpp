@@ -23,7 +23,7 @@ void serializeSharedData(const SharedData& data, char* buffer) {
 
 int main() {
     // Shared memory
-    const char* memoryName = "dronePosAndReset";
+    const char* memoryName = "dronePoseAndReset";
     auto shm_fd = shm_open(memoryName, O_CREAT | O_RDWR, 0666);
     if (shm_fd == -1) {
         perror("shm_open");

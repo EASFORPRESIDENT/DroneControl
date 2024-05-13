@@ -8,7 +8,7 @@ namespace gazebo
 
         // Shared memory
         this->memoryName = "dronePoseAndReset";
-        this->shm_fd = shm_open(this->memoryName, O_CREAT | O_RDWR, 0666);
+        this->shm_fd = shm_open(this->memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
         if (this->shm_fd == -1) {
             std::cerr << RED << "shm_open" << CLEAR << std::endl;
         }
@@ -82,6 +82,12 @@ namespace gazebo
         sharedData->posY = position.Y();
         sharedData->posZ = position.Z();
         sharedData->posYaw = position.Yaw();
+
+        // Serialize SharedData struct into a byte array
+        serializeSharedData(*sharedData, buffer);
+
+        // Write serialized data to shared memory
+        std::memcpy(sharedData, buffer, sizeof(SharedData));
     }
     bool SimulationResetPlugin::CheckReset()
     {
@@ -93,6 +99,11 @@ namespace gazebo
         default:
             return false;
         }
+    }
+
+    void SimulationResetPlugin::serializeSharedData(const SharedData& data, char* buffer)
+    {
+    std::memcpy(buffer, &data, sizeof(SharedData));
     }
 
     SimulationResetPlugin::~SimulationResetPlugin()
