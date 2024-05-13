@@ -25,14 +25,10 @@ using std::this_thread::sleep_for;
 
 struct SharedData
 {
-    bool reset;
-    double posX;
-    double posY;
-    double posZ;
-    double posYaw;
+    int action;
+    bool RunLoop;
 };
 
-void print_position(SharedData *sharedData);
 void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
 void usage(const std::string& bin_name);
@@ -153,7 +149,6 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
 	velocity.forward_m_s = 1.0f;
 	velocity.right_m_s = 0.0f;
     velocity.yawspeed_deg_s = 10;
-    offboard.set_velocity_body(velocity);
     sleep_for(seconds(5));
 
     std::cout << "Holding position...\n";
@@ -161,12 +156,10 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
 	velocity.forward_m_s = 0.0f;
 	velocity.right_m_s = 0.0f;
     velocity.yawspeed_deg_s = 0.0f;
-    offboard.set_velocity_body(velocity);
     sleep_for(seconds(5));
 
     std::cout << "Flying down...\n";
     velocity.down_m_s = 1.0f;
-    offboard.set_velocity_body(velocity);
     sleep_for(seconds(5));
 }
 
@@ -176,7 +169,6 @@ bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
 
     // Send it once before starting offboard, otherwise it will be rejected.
     Offboard::VelocityBodyYawspeed stay{};
-    offboard.set_velocity_body(stay);
 
     Offboard::Result offboard_result = offboard.start();
     if (offboard_result != Offboard::Result::Success) {
@@ -188,7 +180,6 @@ bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
     custom_control(offboard, sharedData);
 
     std::cout << "Wait for a bit\n";
-    offboard.set_velocity_body(stay);
     sleep_for(seconds(3));
 
     offboard_result = offboard.stop();
