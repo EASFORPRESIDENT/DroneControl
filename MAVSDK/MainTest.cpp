@@ -25,10 +25,14 @@ using std::this_thread::sleep_for;
 
 struct SharedData
 {
-    int action;
-    bool endRun;
+    bool reset;
+    double posX;
+    double posY;
+    double posZ;
+    double posYaw;
 };
 
+void print_position(SharedData *sharedData);
 void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
 void usage(const std::string& bin_name);
