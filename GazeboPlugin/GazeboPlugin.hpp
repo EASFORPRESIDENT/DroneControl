@@ -13,6 +13,7 @@
 #define RED "\033[31m"
 #define CLEAR "\033[0m"
 
+//hello
 namespace gazebo
 {
     struct SharedData
