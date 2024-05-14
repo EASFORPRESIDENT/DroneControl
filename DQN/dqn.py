@@ -94,7 +94,7 @@ class DQN(nn.Module):
         return x
 
 # Define some hyperparameters
-input_size = 2  # x and y positions
+input_size = 3  # x and y positions
 output_size = 5  # Number of possible actions
 learning_rate = 0.001
 gamma = 0.99  # Discount factor
