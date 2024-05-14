@@ -201,7 +201,7 @@ class Environment:
 
         done, X_pos, Y_pos, posYaw, posZ= sharedMemoryReceive()
 
-        print(done,X_pos,Y_pos)
+        #print(done,X_pos,Y_pos)
 
         next_state = X_pos, Y_pos, posYaw
 
@@ -229,7 +229,7 @@ for episode in range(num_episodes):
 
     while not done:
         action = agent.select_action(state)
-        print(action)
+        #print(action)
 
 
         #send action to MAVsdk script through open memory
