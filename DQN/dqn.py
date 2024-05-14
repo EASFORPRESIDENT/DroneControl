@@ -7,7 +7,7 @@ import time
 import posix_ipc
 import mmap
 import struct
-
+import pickle
 
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
