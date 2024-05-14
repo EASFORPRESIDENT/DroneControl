@@ -218,7 +218,7 @@ class Environment:
 env = Environment()
 
 print("Booting AI model...")
-
+agent.load_memory("training_data.pkl")
 # Assuming you have an environment with x, y, and z positions
 num_episodes = 1000
 for episode in range(num_episodes):
@@ -247,5 +247,6 @@ for episode in range(num_episodes):
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
 
+agent.save_memory("training_data.pkl")
 RunLoop = False
 sharedMemorySend(0)
