@@ -203,7 +203,7 @@ class Environment:
 
         #print(done,X_pos,Y_pos)
 
-        next_state = X_pos, Y_pos, posYaw
+        next_state = X_pos, Y_pos, posYaw, posZ
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
@@ -225,7 +225,8 @@ print("Booting AI model...")
 agent.load_memory("training_data.pkl")
 # Assuming you have an environment with x, y, and z positions
 num_episodes = 1000
-for episode in range(num_episodes):
+#for episode in range(num_episodes):
+while True:
     nm_of_steps = 0
     state = env.reset()
     total_reward = 0
@@ -250,7 +251,8 @@ for episode in range(num_episodes):
     agent.update_target_network()
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
+    agent.save_memory("training_data.pkl")
 
-agent.save_memory("training_data.pkl")
+
 RunLoop = False
 sharedMemorySend(0)

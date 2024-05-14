@@ -158,7 +158,7 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
     std::cout << "Doing offboard stuff!\n";
     Offboard::VelocityBodyYawspeed velocity{};
 
-    while (RunLoop)
+    while (true)
     {
         //std::cout << "Action: " << sharedData->action << "\n";
         action_translate(sharedData->action, &velocity);
