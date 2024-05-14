@@ -26,7 +26,7 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
-float vel = 3.0;
+float vel = 1.0;
 
 struct SharedData
 {
@@ -232,32 +232,38 @@ void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity)
             velocity->forward_m_s = 0.0f;
             velocity->right_m_s = 0.0f;
             velocity->yawspeed_deg_s = 0.0f;
+            break;
         case 1:
             velocity->down_m_s = 0.0f;
             velocity->forward_m_s = vel;
             velocity->right_m_s = 0.0f;
             velocity->yawspeed_deg_s = 0.0f;
+            break;
         case 2:
             velocity->down_m_s = 0.0f;
             velocity->forward_m_s = -vel;
             velocity->right_m_s = 0.0f;
             velocity->yawspeed_deg_s = 0.0f;
+            break;
         case 3:
             velocity->down_m_s = 0.0f;
             velocity->forward_m_s = 0.0f;
             velocity->right_m_s = vel;
             velocity->yawspeed_deg_s = 0.0f;
+            break;
         case 4:
             velocity->down_m_s = 0.0f;
             velocity->forward_m_s = 0.0f;
             velocity->right_m_s = -vel;
             velocity->yawspeed_deg_s = 0.0f;
+            break;
         default:
             std::cout << "Default\n";
             velocity->down_m_s = 0.0f;
             velocity->forward_m_s = 0.0f;
             velocity->right_m_s = 0.0f;
             velocity->yawspeed_deg_s = 0.0f;
+            break;
     }
 }
 //testing
