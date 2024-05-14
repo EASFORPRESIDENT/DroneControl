@@ -26,6 +26,8 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
+float vel = 2.0;
+
 struct SharedData
 {
     int action;
@@ -229,23 +231,23 @@ Offboard::VelocityBodyYawspeed action_translate(int dqn_action)
             action.yawspeed_deg_s = 0.0f;
         case 1:
             action.down_m_s = 0.0f;
-            action.forward_m_s = 1.0f;
+            action.forward_m_s = vel;
             action.right_m_s = 0.0f;
             action.yawspeed_deg_s = 0.0f;
         case 2:
             action.down_m_s = 0.0f;
-            action.forward_m_s = -1.0f;
+            action.forward_m_s = -vel;
             action.right_m_s = 0.0f;
             action.yawspeed_deg_s = 0.0f;
         case 3:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
-            action.right_m_s = 1.0f;
+            action.right_m_s = vel;
             action.yawspeed_deg_s = 0.0f;
         case 4:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
-            action.right_m_s = -1.0;
+            action.right_m_s = -vel;
             action.yawspeed_deg_s = 0.0f;
         default:
             action.down_m_s = 0.0f;
