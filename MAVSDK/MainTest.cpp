@@ -26,7 +26,7 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
-float vel = 2.0;
+float vel = 3.0;
 
 struct SharedData
 {
@@ -222,7 +222,7 @@ void usage(const std::string& bin_name)
 Offboard::VelocityBodyYawspeed action_translate(int dqn_action)
 {
     Offboard::VelocityBodyYawspeed action{};
-
+    std::cout << "Action: " << dqn_action << "\n";
     switch(dqn_action){
         case 0:
             action.down_m_s = 0.0f;
