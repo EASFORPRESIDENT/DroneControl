@@ -41,7 +41,6 @@ namespace gazebo
         {
             if (CheckReset())
             {
-                std::cout << "Resetting...\n";
                 ResetWorld();
             }
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
@@ -74,7 +73,6 @@ namespace gazebo
         {
         case true:
             localData->reset = false;
-            std::cout << "Exiting CheckReset() with true\n";
             return true;
         default:
             return false;
