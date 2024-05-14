@@ -156,12 +156,25 @@ class DQNAgent:
     def update_target_network(self):
         self.target_model.load_state_dict(self.model.state_dict())
 
+    def save_memory(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(self.memory, f)
+        print("Training data saved to", filename)
+
+    def load_memory(self, filename):
+        try:
+            with open(filename, 'rb') as f:
+                self.memory = pickle.load(f)
+            print("Training data loaded from", filename)
+        except FileNotFoundError:
+            print("No existing training data file found.")
+
 # Example usage
 agent = DQNAgent()
 
 class Environment:
     def __init__(self):
-        self.state_space = 2
+        self.state_space = 3
         self.action_space = 5
         X_pos = 0
         Y_pos = 0
@@ -184,11 +197,11 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos = sharedMemoryReceive()
+        done, X_pos, Y_pos, Pos_yaw = sharedMemoryReceive()
 
         print(done,X_pos,Y_pos)
 
-        next_state = X_pos, Y_pos
+        next_state = X_pos, Y_pos, Pos_yaw
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
