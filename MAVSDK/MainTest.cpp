@@ -160,13 +160,13 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
 
     while (RunLoop)
     {
-        std::cout << "Action: " << sharedData->action << "\n";
+        //std::cout << "Action: " << sharedData->action << "\n";
         action_translate(sharedData->action, &velocity);
         //velocity.down_m_s = -1;
-        std::cout << "Forward: " << velocity.forward_m_s << "   Right: " << velocity.right_m_s << "   Down: " << velocity.down_m_s << "\n";
+        //std::cout << "Forward: " << velocity.forward_m_s << "   Right: " << velocity.right_m_s << "   Down: " << velocity.down_m_s << "\n";
         RunLoop = sharedData->RunLoop;
         offboard.set_velocity_body(velocity);
-        sleep_for(milliseconds(2000));
+        sleep_for(milliseconds(1));
     }
 
     std::cout << "Holding position...\n";
@@ -225,7 +225,7 @@ void usage(const std::string& bin_name)
 
 void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity)
 {
-    std::cout << "Action: " << dqn_action << "\n";
+    //std::cout << "Action: " << dqn_action << "\n";
     switch(dqn_action){
         case 0:
             velocity->down_m_s = 0.0f;
@@ -258,7 +258,7 @@ void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity)
             velocity->yawspeed_deg_s = 0.0f;
             break;
         default:
-            std::cout << "Default\n";
+            //std::cout << "Default\n";
             velocity->down_m_s = 0.0f;
             velocity->forward_m_s = 0.0f;
             velocity->right_m_s = 0.0f;
