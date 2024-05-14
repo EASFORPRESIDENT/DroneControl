@@ -34,7 +34,7 @@ def sharedMemoryReceive():
     mapped_memory.close()
     memory.close_fd()
 
-    return reset, posX, posY, posYaw
+    return reset, posX, posY, posYaw, posZ
 
 #Send chosen action through shared memory
 def sharedMemorySendReset():
@@ -70,7 +70,7 @@ def sharedMemorySend(action):
 
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
-
+    action = 1
     action_to_send = struct.pack('i?', action, RunLoop)
 
     mapped_send.write(action_to_send)
@@ -189,7 +189,7 @@ class Environment:
         sharedMemorySend(0)
 
         while reset:
-            reset, X_pos, Y_pos, posYaw = sharedMemoryReceive()
+            reset, X_pos, Y_pos, posYaw, posZ = sharedMemoryReceive()
             time.sleep(0.1)
         return X_pos, Y_pos, posYaw
 
@@ -199,7 +199,7 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos, posYaw = sharedMemoryReceive()
+        done, X_pos, Y_pos, posYaw, posZ= sharedMemoryReceive()
 
         print(done,X_pos,Y_pos)
 
@@ -209,7 +209,7 @@ class Environment:
 
         reward =  max(0, 1 - distance_to_target / max_distance)  
 
-        if distance_to_target >= max_distance or steps >= max_steps:
+        if distance_to_target >= max_distance or steps >= max_steps or posZ < 5 or posZ > 15:
             done =  1 
         else:
             done = 0
