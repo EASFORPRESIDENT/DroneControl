@@ -13,6 +13,7 @@ import struct
 memory_name = "/dronePoseAndReset"
 memory_send = "/droneAction"
 memory_size = 1024
+RunLoop = True
 
 #Receive position of drone through shared memory
 def sharedMemoryReceive():
