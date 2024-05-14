@@ -36,7 +36,7 @@ struct SharedData
 
 void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
-Offboard::VelocityBodyYawspeed action_translate(int dqn_action);
+void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity);
 void usage(const std::string& bin_name);
 
 int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
@@ -61,6 +61,8 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     if (sharedData == MAP_FAILED) {
         std::cerr << RED << "mmap" << CLEAR << std::endl;
     }
+
+    sharedData->RunLoop = true;
 
     //MAVSDK stuff
 
@@ -158,11 +160,13 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
 
     while (RunLoop)
     {
-        velocity = action_translate(sharedData->action);
+        std::cout << "Action: " << sharedData->action << "\n";
+        action_translate(sharedData->action, &velocity);
         //velocity.down_m_s = -1;
+        std::cout << "Forward: " << velocity.forward_m_s << "   Right: " << velocity.right_m_s << "   Down: " << velocity.down_m_s << "\n";
         RunLoop = sharedData->RunLoop;
         offboard.set_velocity_body(velocity);
-        sleep_for(milliseconds(1));
+        sleep_for(milliseconds(2000));
     }
 
     std::cout << "Holding position...\n";
@@ -219,43 +223,41 @@ void usage(const std::string& bin_name)
               << "For example, to connect to the simulator use URL: udp://:14540\n";
 }
 
-Offboard::VelocityBodyYawspeed action_translate(int dqn_action)
+void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity)
 {
-    Offboard::VelocityBodyYawspeed action{};
     std::cout << "Action: " << dqn_action << "\n";
     switch(dqn_action){
         case 0:
-            action.down_m_s = 0.0f;
-            action.forward_m_s = 0.0f;
-            action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0.0f;
+            velocity->down_m_s = 0.0f;
+            velocity->forward_m_s = 0.0f;
+            velocity->right_m_s = 0.0f;
+            velocity->yawspeed_deg_s = 0.0f;
         case 1:
-            action.down_m_s = 0.0f;
-            action.forward_m_s = vel;
-            action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0.0f;
+            velocity->down_m_s = 0.0f;
+            velocity->forward_m_s = vel;
+            velocity->right_m_s = 0.0f;
+            velocity->yawspeed_deg_s = 0.0f;
         case 2:
-            action.down_m_s = 0.0f;
-            action.forward_m_s = -vel;
-            action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0.0f;
+            velocity->down_m_s = 0.0f;
+            velocity->forward_m_s = -vel;
+            velocity->right_m_s = 0.0f;
+            velocity->yawspeed_deg_s = 0.0f;
         case 3:
-            action.down_m_s = 0.0f;
-            action.forward_m_s = 0.0f;
-            action.right_m_s = vel;
-            action.yawspeed_deg_s = 0.0f;
+            velocity->down_m_s = 0.0f;
+            velocity->forward_m_s = 0.0f;
+            velocity->right_m_s = vel;
+            velocity->yawspeed_deg_s = 0.0f;
         case 4:
-            action.down_m_s = 0.0f;
-            action.forward_m_s = 0.0f;
-            action.right_m_s = -vel;
-            action.yawspeed_deg_s = 0.0f;
+            velocity->down_m_s = 0.0f;
+            velocity->forward_m_s = 0.0f;
+            velocity->right_m_s = -vel;
+            velocity->yawspeed_deg_s = 0.0f;
         default:
-            action.down_m_s = 0.0f;
-            action.forward_m_s = 0.0f;
-            action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0.0f;
+            std::cout << "Default\n";
+            velocity->down_m_s = 0.0f;
+            velocity->forward_m_s = 0.0f;
+            velocity->right_m_s = 0.0f;
+            velocity->yawspeed_deg_s = 0.0f;
     }
-
-    return action;
 }
 //testing
