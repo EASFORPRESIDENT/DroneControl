@@ -4,8 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/andreas/DroneControl/MAVSDK",
-                "/usr/local/include/MAVSDK"
+                "/usr/local/include/mavsdk",
                 "/usr/include/gazebo-11",
                 "/usr/include/sdformat-9.7",
                 "/usr/include/ignition/fuel_tools4",

@@ -246,3 +246,5 @@ for episode in range(num_episodes):
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
 
+RunLoop = False
+sharedMemorySend(0)
