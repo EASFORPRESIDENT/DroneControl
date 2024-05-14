@@ -186,6 +186,7 @@ class Environment:
         reset = 1
 
         sharedMemorySendReset()
+        sharedMemorySend(0)
 
         while reset:
             reset, X_pos, Y_pos, posYaw = sharedMemoryReceive()
@@ -232,7 +233,7 @@ for episode in range(num_episodes):
 
 
         #send action to MAVsdk script through open memory
-        #sharedMemorySend(action)
+        sharedMemorySend(action)
 
         next_state, reward, done, _ = env.step(action,nm_of_steps)
 
