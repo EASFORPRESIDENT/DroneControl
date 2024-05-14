@@ -175,8 +175,8 @@ agent = DQNAgent()
 
 class Environment:
     def __init__(self):
-        self.state_space = 3
-        self.action_space = 5
+        self.state_space = 4
+        self.action_space = 7
         X_pos = 0
         Y_pos = 0
 
@@ -191,7 +191,7 @@ class Environment:
         while reset:
             reset, X_pos, Y_pos, posYaw, posZ = sharedMemoryReceive()
             time.sleep(0.1)
-        return X_pos, Y_pos, posYaw
+        return X_pos, Y_pos, posYaw, posZ
 
 
 
