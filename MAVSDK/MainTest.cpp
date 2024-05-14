@@ -34,6 +34,7 @@ struct SharedData
 
 void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
+Offboard::VelocityBodyYawspeed action_translate(int dqn_action);
 void usage(const std::string& bin_name);
 
 int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
@@ -104,7 +105,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     Telemetry::LandedStateHandle handle = telemetry.subscribe_landed_state(
         [&telemetry, &in_air_promise, &handle](Telemetry::LandedState state) {
             if (state == Telemetry::LandedState::InAir) {
-                std::cout << "Taking off has finished\n.";
+                std::cout << "Taking off has finished.\n";
                 telemetry.unsubscribe_landed_state(handle);
                 in_air_promise.set_value();
             }
@@ -156,6 +157,7 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
     while (RunLoop)
     {
         velocity = action_translate(sharedData->action);
+        //velocity.down_m_s = -1;
         RunLoop = sharedData->RunLoop;
         offboard.set_velocity_body(velocity);
         sleep_for(milliseconds(1));
@@ -181,6 +183,7 @@ bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
 
     // Send it once before starting offboard, otherwise it will be rejected.
     Offboard::VelocityBodyYawspeed stay{};
+    offboard.set_velocity_body(stay);
 
     Offboard::Result offboard_result = offboard.start();
     if (offboard_result != Offboard::Result::Success) {
@@ -216,39 +219,39 @@ void usage(const std::string& bin_name)
 
 Offboard::VelocityBodyYawspeed action_translate(int dqn_action)
 {
-    Offboard::VelocityBodyYawspeed action;
+    Offboard::VelocityBodyYawspeed action{};
 
     switch(dqn_action){
         case 0:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
             action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0;
+            action.yawspeed_deg_s = 0.0f;
         case 1:
             action.down_m_s = 0.0f;
             action.forward_m_s = 1.0f;
             action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0;
+            action.yawspeed_deg_s = 0.0f;
         case 2:
             action.down_m_s = 0.0f;
             action.forward_m_s = -1.0f;
             action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0;
+            action.yawspeed_deg_s = 0.0f;
         case 3:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
             action.right_m_s = 1.0f;
-            action.yawspeed_deg_s = 0;
+            action.yawspeed_deg_s = 0.0f;
         case 4:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
             action.right_m_s = -1.0;
-            action.yawspeed_deg_s = 0;
+            action.yawspeed_deg_s = 0.0f;
         default:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
             action.right_m_s = 0.0f;
-            action.yawspeed_deg_s = 0;
+            action.yawspeed_deg_s = 0.0f;
     }
 
     return action;
