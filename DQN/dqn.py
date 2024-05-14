@@ -33,7 +33,7 @@ def sharedMemoryReceive():
     mapped_memory.close()
     memory.close_fd()
 
-    return reset, posX, posY
+    return reset, posX, posY, posYaw
 
 #Send chosen action through shared memory
 def sharedMemorySendReset():
@@ -187,9 +187,9 @@ class Environment:
         sharedMemorySendReset()
 
         while reset:
-            reset, X_pos, Y_pos = sharedMemoryReceive()
+            reset, X_pos, Y_pos, posYaw = sharedMemoryReceive()
             time.sleep(0.1)
-        return X_pos, Y_pos
+        return X_pos, Y_pos, posYaw
 
 
 
@@ -197,11 +197,11 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos, Pos_yaw = sharedMemoryReceive()
+        done, X_pos, Y_pos, posYaw = sharedMemoryReceive()
 
         print(done,X_pos,Y_pos)
 
-        next_state = X_pos, Y_pos, Pos_yaw
+        next_state = X_pos, Y_pos, posYaw
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
