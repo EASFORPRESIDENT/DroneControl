@@ -95,8 +95,8 @@ class DQN(nn.Module):
         return x
 
 # Define some hyperparameters
-input_size = 3  # x and y positions
-output_size = 5  # Number of possible actions
+input_size = 4  # x and y positions
+output_size = 7  # Number of possible actions
 learning_rate = 0.001
 gamma = 0.99  # Discount factor
 epsilon = 1.0  # Exploration rate
@@ -175,8 +175,8 @@ agent = DQNAgent()
 
 class Environment:
     def __init__(self):
-        self.state_space = 3
-        self.action_space = 5
+        self.state_space = 4
+        self.action_space = 7
         X_pos = 0
         Y_pos = 0
 
@@ -191,7 +191,7 @@ class Environment:
         while reset:
             reset, X_pos, Y_pos, posYaw, posZ = sharedMemoryReceive()
             time.sleep(0.1)
-        return X_pos, Y_pos, posYaw
+        return X_pos, Y_pos, posYaw, posZ
 
 
 
@@ -207,7 +207,11 @@ class Environment:
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
-        reward =  max(0, 1 - distance_to_target / max_distance)  
+        reward_one =  max(0, 1 - distance_to_target / max_distance)
+
+        reward_two = max(0,1 - abs((10-posZ))/5)
+
+        reward = 0.7*reward_one + 0.3*reward_two
 
         if distance_to_target >= max_distance or steps >= max_steps or posZ < 5 or posZ > 15:
             done =  1 

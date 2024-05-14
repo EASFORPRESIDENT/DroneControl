@@ -257,6 +257,20 @@ void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity)
             velocity->right_m_s = -vel;
             velocity->yawspeed_deg_s = 0.0f;
             break;
+        case 5:
+            velocity->down_m_s = vel;
+            velocity->forward_m_s = 0.0f;
+            velocity->right_m_s = 0.0f;
+            velocity->yawspeed_deg_s = 0.0f;
+            break;
+
+        case 6:
+            velocity->down_m_s = -vel;
+            velocity->forward_m_s = 0.0f;
+            velocity->right_m_s = 0.0f;
+            velocity->yawspeed_deg_s = 0.0f;
+            break;
+
         default:
             //std::cout << "Default\n";
             velocity->down_m_s = 0.0f;
