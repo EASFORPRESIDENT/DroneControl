@@ -254,6 +254,8 @@ while True:
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
     agent.save_memory("training_data.pkl")
     episode += 1
+    if episode > 10000:
+        episode = 0
 
 
 RunLoop = False
