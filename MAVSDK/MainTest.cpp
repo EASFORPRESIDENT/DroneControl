@@ -229,31 +229,37 @@ Offboard::VelocityBodyYawspeed action_translate(int dqn_action)
             action.forward_m_s = 0.0f;
             action.right_m_s = 0.0f;
             action.yawspeed_deg_s = 0.0f;
+            break;
         case 1:
             action.down_m_s = 0.0f;
             action.forward_m_s = vel;
             action.right_m_s = 0.0f;
             action.yawspeed_deg_s = 0.0f;
+            break;
         case 2:
             action.down_m_s = 0.0f;
             action.forward_m_s = -vel;
             action.right_m_s = 0.0f;
             action.yawspeed_deg_s = 0.0f;
+            break;
         case 3:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
             action.right_m_s = vel;
             action.yawspeed_deg_s = 0.0f;
+            break;
         case 4:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
             action.right_m_s = -vel;
             action.yawspeed_deg_s = 0.0f;
+            break;
         default:
             action.down_m_s = 0.0f;
             action.forward_m_s = 0.0f;
             action.right_m_s = 0.0f;
             action.yawspeed_deg_s = 0.0f;
+            break;
     }
 
     return action;
