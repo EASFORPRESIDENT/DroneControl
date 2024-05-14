@@ -7,7 +7,7 @@ import time
 import posix_ipc
 import mmap
 import struct
-
+import pickle
 
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
@@ -34,7 +34,7 @@ def sharedMemoryReceive():
     mapped_memory.close()
     memory.close_fd()
 
-    return reset, posX, posY
+    return reset, posX, posY, posYaw
 
 #Send chosen action through shared memory
 def sharedMemorySendReset():
@@ -95,7 +95,7 @@ class DQN(nn.Module):
         return x
 
 # Define some hyperparameters
-input_size = 2  # x and y positions
+input_size = 3  # x and y positions
 output_size = 5  # Number of possible actions
 learning_rate = 0.001
 gamma = 0.99  # Discount factor
@@ -157,12 +157,25 @@ class DQNAgent:
     def update_target_network(self):
         self.target_model.load_state_dict(self.model.state_dict())
 
+    def save_memory(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(self.memory, f)
+        print("Training data saved to", filename)
+
+    def load_memory(self, filename):
+        try:
+            with open(filename, 'rb') as f:
+                self.memory = pickle.load(f)
+            print("Training data loaded from", filename)
+        except FileNotFoundError:
+            print("No existing training data file found.")
+
 # Example usage
 agent = DQNAgent()
 
 class Environment:
     def __init__(self):
-        self.state_space = 2
+        self.state_space = 3
         self.action_space = 5
         X_pos = 0
         Y_pos = 0
@@ -175,9 +188,9 @@ class Environment:
         sharedMemorySendReset()
 
         while reset:
-            reset, X_pos, Y_pos = sharedMemoryReceive()
+            reset, X_pos, Y_pos, posYaw = sharedMemoryReceive()
             time.sleep(0.1)
-        return X_pos, Y_pos
+        return X_pos, Y_pos, posYaw
 
 
 
@@ -185,11 +198,11 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos = sharedMemoryReceive()
+        done, X_pos, Y_pos, posYaw = sharedMemoryReceive()
 
         print(done,X_pos,Y_pos)
 
-        next_state = X_pos, Y_pos
+        next_state = X_pos, Y_pos, posYaw
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
