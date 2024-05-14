@@ -43,6 +43,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         return 1;
     }
 
+    // Shared memory
     const char* memoryName = "droneAction";
     int shm_fd = shm_open(memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
     if (shm_fd == -1) {
@@ -57,6 +58,8 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     if (sharedData == MAP_FAILED) {
         std::cerr << RED << "mmap" << CLEAR << std::endl;
     }
+
+    //MAVSDK stuff
 
     Mavsdk mavsdk{Mavsdk::Configuration{Mavsdk::ComponentType::GroundStation}};
     ConnectionResult connection_result = mavsdk.add_any_connection(argv[1]);
@@ -146,25 +149,30 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
 {
     
     float degSpeed;
+    bool RunLoop = true;
     std::cout << "Doing offboard stuff!\n";
     Offboard::VelocityBodyYawspeed velocity{};
 
-    velocity.down_m_s = -1.0f;
-	velocity.forward_m_s = 1.0f;
-	velocity.right_m_s = 0.0f;
-    velocity.yawspeed_deg_s = 10;
-    sleep_for(seconds(5));
+    while (RunLoop)
+    {
+        velocity = action_translate(sharedData->action);
+        RunLoop = sharedData->RunLoop;
+        offboard.set_velocity_body(velocity);
+        sleep_for(milliseconds(1));
+    }
 
     std::cout << "Holding position...\n";
     velocity.down_m_s = 0.0f;
 	velocity.forward_m_s = 0.0f;
 	velocity.right_m_s = 0.0f;
     velocity.yawspeed_deg_s = 0.0f;
+    offboard.set_velocity_body(velocity);
     sleep_for(seconds(5));
 
     std::cout << "Flying down...\n";
     velocity.down_m_s = 1.0f;
-    sleep_for(seconds(5));
+    offboard.set_velocity_body(velocity);
+    sleep_for(seconds(6));
 }
 
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
