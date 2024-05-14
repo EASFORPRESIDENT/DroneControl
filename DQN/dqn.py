@@ -71,6 +71,7 @@ def sharedMemorySend(action):
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
     action = 1
+    time.sleep(0.5)
     action_to_send = struct.pack('i?', action, RunLoop)
 
     mapped_send.write(action_to_send)
