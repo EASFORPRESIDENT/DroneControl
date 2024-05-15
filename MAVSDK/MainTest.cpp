@@ -81,7 +81,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     auto param = Param{system.value()};
     const std::string param_name = "SDLOG_MODE";
     std::pair<Param::Result, int32_t> param_result;
-    const int param_value = 0;
+    const int param_value = -1;
 
     param_result.first = param.set_param_int(param_name, param_value);
     if (param_result.first != Param::Result::Success) {
