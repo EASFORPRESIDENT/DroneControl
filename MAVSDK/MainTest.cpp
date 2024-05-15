@@ -78,18 +78,18 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     }
 
     // Set SDLOG_MODE parameter to 0 (disable logging)
-    auto param = std::make_shared<Param>(system);
+    auto param = Param{system.value()};
     const std::string param_name = "SDLOG_MODE";
     std::pair<Param::Result, int32_t> param_result;
     const int param_value = 0;
 
-    param_result.first = param->set_param_int(param_name, param_value);
+    param_result.first = param.set_param_int(param_name, param_value);
     if (param_result.first != Param::Result::Success) {
         std::cerr << "Failed to set parameter!" << std::endl;
         return 1;
     }
 
-    param_result = param->get_param_int(param_name);
+    param_result = param.get_param_int(param_name);
     if (param_result.first != Param::Result::Success) {
         std::cerr << "Failed to get parameter!" << std::endl;
         return 1;
