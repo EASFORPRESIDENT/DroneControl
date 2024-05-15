@@ -13,15 +13,12 @@
 #include <mavsdk/plugins/action/action.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/offboard/offboard.h>
+#include <mavsdk/plugins/param/param.h>
 
 #define RED "\033[31m"
 #define CLEAR "\033[0m"
 
-using mavsdk::Mavsdk;
-using mavsdk::ConnectionResult;
-using mavsdk::Offboard;
-using mavsdk::Action;
-using mavsdk::Telemetry;
+using namespace mavsdk;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -79,6 +76,26 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         std::cerr << "Timed out waiting for system\n";
         return 1;
     }
+
+    // Set SDLOG_MODE parameter to 0 (disable logging)
+    auto param = std::make_shared<Param>(system);
+    const std::string param_name = "SDLOG_MODE";
+    std::pair<Param::Result, int32_t> param_result;
+    const int param_value = 0;
+
+    param_result.first = param->set_param_int(param_name, param_value);
+    if (param_result.first != Param::Result::Success) {
+        std::cerr << "Failed to set parameter!" << std::endl;
+        return 1;
+    }
+
+    param_result = param->get_param_int(param_name);
+    if (param_result.first != Param::Result::Success) {
+        std::cerr << "Failed to get parameter!" << std::endl;
+        return 1;
+    }
+
+    std::cout << "SDLOG_MODE is now set to: " << param_result.second << std::endl;
 
     // Instantiate plugins.
     auto action = Action{system.value()};
