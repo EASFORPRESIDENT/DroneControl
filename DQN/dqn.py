@@ -263,7 +263,7 @@ while True:
     if episode > 10000:
         episode = 0
     # Plotting
-    if episode % 2 == 0:
+    if episode % 1000 == 0:
 
         plt.figure(1)
         training_reward = torch.tensor(episode_rewards, dtype=torch.float)
