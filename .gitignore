@@ -3,3 +3,4 @@ MainTest.out
 GazeboPlugin/build
 MAVSDK/build
 .vscode
+training_data.pkl
