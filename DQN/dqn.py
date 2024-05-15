@@ -9,6 +9,7 @@ import mmap
 import struct
 import pickle
 import matplotlib.pyplot as plt
+from IPython import display
 
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
@@ -263,12 +264,29 @@ while True:
         episode = 0
     # Plotting
     if episode % 10 == 0:
-        plt.plot(episode_rewards)
+
+        plt.figure(1)
+        training_reward = torch.tensor(episode_rewards, dtype=torch.float)
+        if True:
+            plt.title('Result')
+        else:
+            plt.clf()
+            plt.title('Training...')
         plt.xlabel('Episode')
-        plt.ylabel('Total Reward')
-        plt.title('Training Progress')
-        plt.grid(True)
-        plt.show()
+        plt.ylabel('Reward')
+        plt.plot(training_reward.numpy())
+
+        
+        # Take 100 episode averages and plot them too
+        #if len(durations_t) >= 100:
+            #means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
+            #means = torch.cat((torch.zeros(99), means))
+            #plt.plot(means.numpy())
+
+        plt.pause(0.05)  # pause a bit so that plots are updated
+
+        display.display(plt.gcf())
+
 
 
 RunLoop = False
