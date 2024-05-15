@@ -18,6 +18,7 @@ RunLoop = True
 #Receive position of drone through shared memory
 def sharedMemoryReceive():
     # Open the shared memory
+
     memory = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
