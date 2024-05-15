@@ -23,6 +23,7 @@ void serializeSharedData(const SharedData& data, char* buffer) {
 
 int main() {
     // Shared memory
+    printf("started");
     const char* memoryName = "dronePoseAndReset";
     auto shm_fd = shm_open(memoryName, O_CREAT | O_RDWR, 0666);
     if (shm_fd == -1) {
@@ -61,5 +62,6 @@ int main() {
     munmap(sharedData, sizeof(SharedData));
     close(shm_fd);
     shm_unlink(memoryName);
+    printf("end");
     return 0;
 }

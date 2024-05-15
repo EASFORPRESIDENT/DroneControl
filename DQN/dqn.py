@@ -8,6 +8,7 @@ import posix_ipc
 import mmap
 import struct
 import pickle
+import matplotlib.pyplot as plt
 
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
@@ -224,6 +225,7 @@ env = Environment()
 print("Booting AI model...")
 agent.load_memory("training_data.pkl")
 # Assuming you have an environment with x, y, and z positions
+episode_rewards = [] #defining list for ploting
 num_episodes = 1000
 #for episode in range(num_episodes):
 episode = 0
@@ -248,6 +250,8 @@ while True:
         total_reward += reward
         agent.replay()
         nm_of_steps = nm_of_steps + 1
+    # Append total reward for this episode to episode_rewards list for ploting
+    episode_rewards.append(total_reward)
 
     agent.update_target_network()
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
@@ -256,6 +260,14 @@ while True:
     episode += 1
     if episode > 10000:
         episode = 0
+    # Plotting
+    if episode % 10 == 0:
+        plt.plot(episode_rewards)
+        plt.xlabel('Episode')
+        plt.ylabel('Total Reward')
+        plt.title('Training Progress')
+        plt.grid(True)
+        plt.show()
 
 
 RunLoop = False
