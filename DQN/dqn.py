@@ -276,7 +276,7 @@ while True:
         plt.ylabel('Reward')
         plt.plot(training_reward.numpy())
 
-        
+
         # Take 100 episode averages and plot them too
         #if len(durations_t) >= 100:
             #means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
@@ -291,4 +291,3 @@ while True:
 
 RunLoop = False
 sharedMemorySend(0)
-#testcomitdsadas
