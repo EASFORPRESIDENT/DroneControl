@@ -263,7 +263,7 @@ while True:
     if episode > 10000:
         episode = 0
     # Plotting
-    if episode % 10 == 0:
+    if episode % 2 == 0:
 
         plt.figure(1)
         training_reward = torch.tensor(episode_rewards, dtype=torch.float)
@@ -283,7 +283,7 @@ while True:
             #means = torch.cat((torch.zeros(99), means))
             #plt.plot(means.numpy())
 
-        plt.pause(0.05)  # pause a bit so that plots are updated
+        plt.pause(0.002)  # pause a bit so that plots are updated
 
         display.display(plt.gcf())
 
