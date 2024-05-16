@@ -1,6 +1,6 @@
 MainTest.exe
 MainTest.out
-GazeboPlugin/build
-MAVSDK/build
+GazeboPlugin/build/
+MAVSDK/build/
 .vscode
 training_data.pkl

@@ -25,11 +25,18 @@ using std::this_thread::sleep_for;
 
 float vel = 1.0;
 
+
+
+
 struct SharedData
 {
-    int action;
-    bool RunLoop;
+    bool reset;
+    double posX;
+    double posY;
+    double posZ;
+    double posYaw;
 };
+
 
 void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
@@ -44,7 +51,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     }
 
     // Shared memory
-    const char* memoryName = "droneAction";
+    const char* memoryName = "dronePoseAndReset";
     int shm_fd = shm_open(memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
     if (shm_fd == -1) {
         std::cerr << RED << "shm_open" << CLEAR << std::endl;
@@ -59,7 +66,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         std::cerr << RED << "mmap" << CLEAR << std::endl;
     }
 
-    sharedData->RunLoop = true;
+    sharedData->reset = false;
 
     //MAVSDK stuff
 
@@ -178,10 +185,10 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
     while (true)
     {
         //std::cout << "Action: " << sharedData->action << "\n";
-        action_translate(sharedData->action, &velocity);
+        action_translate(sharedData, &velocity);
         //velocity.down_m_s = -1;
         //std::cout << "Forward: " << velocity.forward_m_s << "   Right: " << velocity.right_m_s << "   Down: " << velocity.down_m_s << "\n";
-        RunLoop = sharedData->RunLoop;
+        //RunLoop = sharedData->Runloop;
         offboard.set_velocity_body(velocity);
         sleep_for(milliseconds(1));
     }
@@ -240,61 +247,14 @@ void usage(const std::string& bin_name)
               << "For example, to connect to the simulator use URL: udp://:14540\n";
 }
 
-void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity)
+void action_translate(SharedData *sharedData, Offboard::VelocityBodyYawspeed *velocity)
 {
-    //std::cout << "Action: " << dqn_action << "\n";
-    switch(dqn_action){
-        case 0:
-            velocity->down_m_s = 0.0f;
-            velocity->forward_m_s = 0.0f;
-            velocity->right_m_s = 0.0f;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
-        case 1:
-            velocity->down_m_s = 0.0f;
-            velocity->forward_m_s = vel;
-            velocity->right_m_s = 0.0f;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
-        case 2:
-            velocity->down_m_s = 0.0f;
-            velocity->forward_m_s = -vel;
-            velocity->right_m_s = 0.0f;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
-        case 3:
-            velocity->down_m_s = 0.0f;
-            velocity->forward_m_s = 0.0f;
-            velocity->right_m_s = vel;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
-        case 4:
-            velocity->down_m_s = 0.0f;
-            velocity->forward_m_s = 0.0f;
-            velocity->right_m_s = -vel;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
-        case 5:
-            velocity->down_m_s = vel;
-            velocity->forward_m_s = 0.0f;
-            velocity->right_m_s = 0.0f;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
+    float kp = 0.5; // P controller gain
 
-        case 6:
-            velocity->down_m_s = -vel;
-            velocity->forward_m_s = 0.0f;
-            velocity->right_m_s = 0.0f;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
-
-        default:
-            //std::cout << "Default\n";
-            velocity->down_m_s = 0.0f;
-            velocity->forward_m_s = 0.0f;
-            velocity->right_m_s = 0.0f;
-            velocity->yawspeed_deg_s = 0.0f;
-            break;
-    }
+    // Set desired velocity based on P controller, compensates for coordinate error from posYaw
+    velocity->down_m_s = -kp * (sharedData->posZ - 10.0f);
+    velocity->forward_m_s = -kp * (sharedData->posY * cos(sharedData->posYaw) - sharedData->posX * sin(sharedData->posYaw));
+    velocity->right_m_s = -kp * (sharedData->posX * cos(sharedData->posYaw) - sharedData->posY * sin(sharedData->posYaw));
+    velocity->yawspeed_deg_s = -kp * sharedData->posYaw;
 }
 //testing
