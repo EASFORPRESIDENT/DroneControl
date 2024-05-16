@@ -225,7 +225,7 @@ class Environment:
         return next_state, reward, done, {}
 
 def getZ():
-    done, X_pos, Y_pos, posYaw, Z_pos= sharedMemoryReceive()
+    done, X_pos, Y_pos, posYaw, Z_pos, X_vel, Y_vel, Yaw_vel= sharedMemoryReceive()
 
     return Z_pos
 
