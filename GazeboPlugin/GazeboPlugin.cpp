@@ -2,6 +2,7 @@
 
 namespace gazebo
 {
+    int go = 0;
     void SimulationResetPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sdf)
     {
         std::cout << "SimulationResetPlugin loaded successfully!" << std::endl;
@@ -36,22 +37,59 @@ namespace gazebo
 
     void SimulationResetPlugin::OnUpdate()
     {
+
+
         static int count = 0;
         if (++count > 150)
         {
             if (CheckReset())
             {
                 ResetWorld();
+                //go = 1;
             }
             
             
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
+
+            //if(go == 1)
+            //{
+            //    if (dronePose.Z() >= 3 || dronePose.Z() <= 2)
+            //    {
+            //        ResetZ(dronePose); 
+            //    }
+            //}
+
+            
+            
+
             SetDronePosition(dronePose);
             UpdateVelocity();
             SendSharedData();
             prevDronePose = dronePose;
             prevTime = this->world.get()->SimTime();
             count = 0;
+        }
+    }
+    
+
+    void SimulationResetPlugin::ResetZ(ignition::math::Pose3d pose)
+    {
+        double x,y,z;
+
+        x = pose.X();
+        y = pose.Y();
+        z = 10;
+
+        ignition::math::Pose3d newPose = ignition::math::Pose3d(x, y, z, 0, 0, 0);
+
+        auto model = this->world->ModelByName("iris");
+        if (model)
+        {
+            model->SetWorldPose(newPose);
+        }
+        else
+        {
+            std::cout << "Failed to find model 'iris'." << std::endl;
         }
     }
 

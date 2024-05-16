@@ -14,6 +14,7 @@
 #define CLEAR "\033[0m"
 
 //hello from eas
+
 namespace gazebo
 {
     struct SharedData
@@ -36,6 +37,8 @@ namespace gazebo
         void Load(physics::WorldPtr _world, sdf::ElementPtr _sdf) override;
         void OnUpdate();
         void ResetWorld();
+        void ResetZ(ignition::math::Pose3d pose);
+
 
     private:
         const char *memoryName;
