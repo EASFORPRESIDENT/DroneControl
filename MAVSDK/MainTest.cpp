@@ -40,7 +40,7 @@ struct SharedData
 
 void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
-void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity);
+void action_translate(SharedData *sharedData, Offboard::VelocityBodyYawspeed *velocity);
 void usage(const std::string& bin_name);
 
 int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
@@ -184,13 +184,15 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
 
     while (true)
     {
+        
+
         //std::cout << "Action: " << sharedData->action << "\n";
         action_translate(sharedData, &velocity);
         //velocity.down_m_s = -1;
         //std::cout << "Forward: " << velocity.forward_m_s << "   Right: " << velocity.right_m_s << "   Down: " << velocity.down_m_s << "\n";
         //RunLoop = sharedData->Runloop;
         offboard.set_velocity_body(velocity);
-        sleep_for(milliseconds(1));
+        sleep_for(milliseconds(20));
     }
 
     std::cout << "Holding position...\n";
@@ -249,12 +251,12 @@ void usage(const std::string& bin_name)
 
 void action_translate(SharedData *sharedData, Offboard::VelocityBodyYawspeed *velocity)
 {
-    float kp = 0.5; // P controller gain
+    float kp = 0.25; // P controller gain
 
     // Set desired velocity based on P controller, compensates for coordinate error from posYaw
-    velocity->down_m_s = -kp * (sharedData->posZ - 10.0f);
-    velocity->forward_m_s = -kp * (sharedData->posY * cos(sharedData->posYaw) - sharedData->posX * sin(sharedData->posYaw));
-    velocity->right_m_s = -kp * (sharedData->posX * cos(sharedData->posYaw) - sharedData->posY * sin(sharedData->posYaw));
+    velocity->down_m_s = kp * (sharedData->posZ - 10.0f);
+    velocity->forward_m_s = kp * (sharedData->posY);
+    velocity->right_m_s = kp * (sharedData->posX);
     velocity->yawspeed_deg_s = -kp * sharedData->posYaw;
 }
 //testing
