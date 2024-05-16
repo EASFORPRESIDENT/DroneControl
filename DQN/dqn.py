@@ -203,7 +203,7 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Yaw_vel= sharedMemoryReceive()
+        done, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
 
         #print(done,X_pos,Y_pos)
 
