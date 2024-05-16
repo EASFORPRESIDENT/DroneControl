@@ -23,7 +23,7 @@ namespace gazebo
         }
 
         localData = new SharedData();
-
+        prevTime = 0;
         sharedData->reset = false;
 
         // Plugin
@@ -43,9 +43,14 @@ namespace gazebo
             {
                 ResetWorld();
             }
+            
+            
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
             SetDronePosition(dronePose);
+            UpdateVelocity();
             SendSharedData();
+            prevDronePose = dronePose;
+            prevTime = this->world.get()->SimTime();
             count = 0;
         }
     }
@@ -98,6 +103,16 @@ namespace gazebo
         localData->posY = position.Y();
         localData->posZ = position.Z();
         localData->posYaw = position.Yaw();
+    }
+
+    void SimulationResetPlugin::UpdateVelocity()
+    {
+        auto currentTime = this->world.get()->SimTime();
+        auto deltaTime = (currentTime - prevTime).Double();
+        localData->velX = (localData->posX - prevDronePose.X()) / deltaTime;
+        localData->velY = (localData->posY - prevDronePose.Y()) / deltaTime;
+        localData->velZ = (localData->posZ - prevDronePose.Z()) / deltaTime;
+        localData->velYaw = (localData->posX - prevDronePose.Yaw()) / deltaTime;
     }
 
     void SimulationResetPlugin::SendSharedData()

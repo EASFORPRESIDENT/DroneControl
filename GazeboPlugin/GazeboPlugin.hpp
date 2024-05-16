@@ -19,10 +19,16 @@ namespace gazebo
     struct SharedData
     {
         bool reset;
+        
         double posX;
         double posY;
         double posZ;
         double posYaw;
+
+        double velX;
+        double velY;
+        double velZ;
+        double velYaw;
     };
     class SimulationResetPlugin : public WorldPlugin
     {
@@ -40,13 +46,16 @@ namespace gazebo
         SharedData* sharedData;
         physics::WorldPtr world;
         event::ConnectionPtr updateConnection;
+        gazebo::common::Time prevTime;
         ignition::math::Pose3d dronePose;
+        ignition::math::Pose3d prevDronePose;
         ignition::math::Pose3d RandomPose();
 
         
 
         void serializeSharedData(const SharedData& data, char* buffer);
         void SetDronePosition(ignition::math::Pose3d position);
+        void UpdateVelocity();
         void SendSharedData();
         bool CheckReset();
         ~SimulationResetPlugin();
