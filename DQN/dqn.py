@@ -51,7 +51,7 @@ def sharedMemorySendReset():
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
-    reset_to_send = struct.pack('?dddd', True,0,0,0,0)
+    reset_to_send = struct.pack('?dddd', True,0,0,getZ(),0)
 
     mapped_send.write(reset_to_send)
 
@@ -74,7 +74,7 @@ def sharedMemorySend(action):
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
     #time.sleep(0.5)
-    action_to_send = struct.pack('i?', action, RunLoop)
+    action_to_send = struct.pack('id?', action, getZ(), RunLoop)
 
     mapped_send.write(action_to_send)
 
@@ -98,8 +98,8 @@ class DQN(nn.Module):
         return x
 
 # Define some hyperparameters
-input_size = 4  # x and y positions
-output_size = 7  # Number of possible actions
+input_size = 3  # x and y positions
+output_size = 5  # Number of possible actions
 learning_rate = 0.001
 gamma = 0.99  # Discount factor
 epsilon = 1.0  # Exploration rate
@@ -123,8 +123,9 @@ class DQNAgent:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
     def select_action(self, state):
-        if np.random.rand() < epsilon:
-            return np.random.choice(output_size)
+        #if np.random.rand() < 2:
+        #if np.random.rand() < epsilon:
+        #    return np.random.choice(output_size)
         with torch.no_grad():
             q_values = self.model(torch.tensor(state, dtype=torch.float32))
             return torch.argmax(q_values).item()
@@ -178,8 +179,8 @@ agent = DQNAgent()
 
 class Environment:
     def __init__(self):
-        self.state_space = 4
-        self.action_space = 7
+        self.state_space = 3
+        self.action_space = 5
         X_pos = 0
         Y_pos = 0
 
@@ -192,9 +193,9 @@ class Environment:
         sharedMemorySend(0)
 
         while reset:
-            reset, X_pos, Y_pos, posYaw, posZ = sharedMemoryReceive()
+            reset, X_pos, Y_pos, posYaw ,Z_pos= sharedMemoryReceive()
             time.sleep(0.1)
-        return X_pos, Y_pos, posYaw, posZ
+        return X_pos, Y_pos, posYaw
 
 
 
@@ -202,25 +203,30 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos, posYaw, posZ= sharedMemoryReceive()
+        done, X_pos, Y_pos, posYaw, Z_pos= sharedMemoryReceive()
 
         #print(done,X_pos,Y_pos)
 
-        next_state = X_pos, Y_pos, posYaw, posZ
+        next_state = X_pos, Y_pos, posYaw
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
-        reward_one =  max(0, 1 - distance_to_target / max_distance)
+        reward =  max(0, 1 - distance_to_target / max_distance)
 
-        reward_two = max(0,1 - abs((10-posZ))/5)
+        #reward_two = max(0,1 - abs((10-posZ))/5)
 
-        reward = 0.7*reward_one + 0.3*reward_two
+        #reward = 0.7*reward_one #+ 0.3*reward_two
 
-        if distance_to_target >= max_distance or steps >= max_steps or posZ < 5 or posZ > 15:
+        if distance_to_target >= max_distance or steps >= max_steps:
             done =  1 
         else:
             done = 0
         return next_state, reward, done, {}
+
+def getZ():
+    done, X_pos, Y_pos, posYaw, Z_pos= sharedMemoryReceive()
+
+    return Z_pos
 
 env = Environment()
 
@@ -260,7 +266,9 @@ while True:
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
     agent.save_memory("training_data.pkl")
     episode += 1
-    if episode > 10000:
+
+    
+    if episode > 1000:
         episode = 0
     # Plotting
     if episode % 1000 == 0:
