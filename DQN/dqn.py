@@ -31,13 +31,13 @@ def sharedMemoryReceive():
     serialized_data = mapped_memory.read()
 
     # Deserialize the data to extract individual fields
-    reset, posX, posY, posZ, posYaw = struct.unpack('?dddd', serialized_data)
+    reset, posX, posY, posZ, posYaw, velX, velY, velZ, velYaw = struct.unpack('?dddddddd', serialized_data)
 
     # Clean up resources when done
     mapped_memory.close()
     memory.close_fd()
 
-    return reset, posX, posY, posYaw, posZ
+    return reset, posX, posY, posYaw, posZ, velX, velY, velZ, velYaw
 
 #Send chosen action through shared memory
 def sharedMemorySendReset():
@@ -51,7 +51,7 @@ def sharedMemorySendReset():
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
-    reset_to_send = struct.pack('?dddd', True,0,0,getZ(),0)
+    reset_to_send = struct.pack('?dddddddd', True,0,0,getZ(),0,0,0,0,0)
 
     mapped_send.write(reset_to_send)
 
@@ -98,7 +98,7 @@ class DQN(nn.Module):
         return x
 
 # Define some hyperparameters
-input_size = 3  # x and y positions
+input_size = 5  # x and y positions
 output_size = 5  # Number of possible actions
 learning_rate = 0.001
 gamma = 0.99  # Discount factor
@@ -179,7 +179,7 @@ agent = DQNAgent()
 
 class Environment:
     def __init__(self):
-        self.state_space = 3
+        self.state_space = 5
         self.action_space = 5
         X_pos = 0
         Y_pos = 0
@@ -193,9 +193,9 @@ class Environment:
         sharedMemorySend(0)
 
         while reset:
-            reset, X_pos, Y_pos, posYaw ,Z_pos= sharedMemoryReceive()
+            reset, X_pos, Y_pos, posYaw , Z_pos, X_vel, Y_vel, Yaw_vel= sharedMemoryReceive()
             time.sleep(0.1)
-        return X_pos, Y_pos, posYaw
+        return X_pos, Y_pos, posYaw, X_vel, Y_vel
 
 
 
