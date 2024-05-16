@@ -96,7 +96,7 @@ class DQN(nn.Module):
         x = torch.relu(self.fc2(x))
         x = self.fc3(x)
         return x
-
+    
 # Define some hyperparameters
 input_size = 5  # x and y positions
 output_size = 5  # Number of possible actions
@@ -203,11 +203,12 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos, posYaw, Z_pos= sharedMemoryReceive()
+        done, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Yaw_vel= sharedMemoryReceive()
 
         #print(done,X_pos,Y_pos)
 
-        next_state = X_pos, Y_pos, posYaw
+
+        next_state = X_pos, Y_pos, posYaw, X_vel, Y_vel
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
