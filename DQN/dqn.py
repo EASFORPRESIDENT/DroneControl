@@ -193,7 +193,7 @@ class Environment:
         sharedMemorySend(0)
 
         while reset:
-            reset, X_pos, Y_pos, posYaw , Z_pos, X_vel, Y_vel, Yaw_vel= sharedMemoryReceive()
+            reset, X_pos, Y_pos, posYaw , Z_pos, X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
             time.sleep(0.1)
         return X_pos, Y_pos, posYaw, X_vel, Y_vel
 
