@@ -260,10 +260,10 @@ while True:
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
     agent.save_memory("training_data.pkl")
     episode += 1
-    if episode > 10000:
+    if episode > 1000:
         episode = 0
     # Plotting
-    if episode % 1000 == 0:
+    if episode % 5 == 0:
 
         plt.figure(1)
         training_reward = torch.tensor(episode_rewards, dtype=torch.float)
