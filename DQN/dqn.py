@@ -10,6 +10,7 @@ import struct
 import pickle
 import matplotlib.pyplot as plt
 from IPython import display
+import math
 
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
@@ -89,19 +90,21 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(input_size, 128)
         self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, output_size)
+        self.fc3 = nn.Linear(64, 32)
+        self.fc4 = nn.Linear(32, output_size)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = torch.relu(self.fc3(x))
+        x = self.fc4(x)
         return x
     
 # Define some hyperparameters
 input_size = 5  # x and y positions
 output_size = 5  # Number of possible actions
-learning_rate = 0.001
-gamma = 0.99  # Discount factor
+learning_rate = 0.1
+gamma = 0.95  # Discount factor
 epsilon = 1.0  # Exploration rate
 epsilon_decay = 0.995
 min_epsilon = 0.01
@@ -212,7 +215,10 @@ class Environment:
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
-        reward =  max(0, 1 - distance_to_target / max_distance)
+        a = 4
+        reward = 10 * math.exp(-a * distance_to_target)
+
+        #reward =  max(0, 1 - distance_to_target / max_distance)
 
         #reward_two = max(0,1 - abs((10-posZ))/5)
 
@@ -271,6 +277,7 @@ while True:
     
     if episode > 1000:
         episode = 0
+        epsilon = 1
     # Plotting
     if episode % 1000 == 0:
 
