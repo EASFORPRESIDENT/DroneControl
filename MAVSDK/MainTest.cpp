@@ -300,5 +300,6 @@ void action_translate(int dqn_action, Offboard::VelocityBodyYawspeed *velocity, 
             velocity->yawspeed_deg_s = 0.0f;
             break;
     }
+    //std::cout << "X:" << velocity->forward_m_s << "   Y: " << velocity->right_m_s << "\n";
 }
 //testing
