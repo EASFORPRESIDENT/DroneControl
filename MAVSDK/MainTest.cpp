@@ -251,12 +251,34 @@ void usage(const std::string& bin_name)
 
 void action_translate(SharedData *sharedData, Offboard::VelocityBodyYawspeed *velocity)
 {
-    float kp = 0.25; // P controller gain
+    // PID controller gains
+    float kp = 0.3; // Proportional gain
+    int static counter = 0;
+    counter++;
+    if(counter == 500){
 
-    // Set desired velocity based on P controller, compensates for coordinate error from posYaw
-    velocity->down_m_s = kp * (sharedData->posZ - 10.0f);
-    velocity->forward_m_s = kp * (sharedData->posY);
-    velocity->right_m_s = kp * (sharedData->posX);
-    velocity->yawspeed_deg_s = -kp * sharedData->posYaw;
+        std::cout << "X: " << sharedData->posX << "\nY: " << sharedData->posY << "\n" << std::endl;
+
+        counter = 0;
+
+    }
+
+    // Error terms
+    float error_z = sharedData->posZ - 10.0f; // Error in Z position
+    float error_y = sharedData->posX; // Error in Y position
+    float error_x = sharedData->posY; // Error in X position
+    float error_yaw = sharedData->posYaw; // Error in Yaw angle
+
+    // Calculate control signals using P controller
+    float control_z = kp * error_z;
+    float control_y = -kp * error_y;
+    float control_x = kp * error_x;
+    float control_yaw = -kp * error_yaw;
+
+    // Set desired velocity based on control signals
+    velocity->down_m_s = control_z;
+    velocity->forward_m_s = control_y;
+    velocity->right_m_s = control_x;
+    velocity->yawspeed_deg_s = control_yaw;
 }
 //testing
