@@ -48,19 +48,7 @@ namespace gazebo
                 //go = 1;
             }
             
-            
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
-
-            //if(go == 1)
-            //{
-            //    if (dronePose.Z() >= 3 || dronePose.Z() <= 2)
-            //    {
-            //        ResetZ(dronePose); 
-            //    }
-            //}
-
-            
-            
 
             SetDronePosition(dronePose);
             UpdateVelocity();

@@ -23,7 +23,7 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
-float vel = 2.0;
+float vel = 1.0;
 
 struct SharedData
 {
