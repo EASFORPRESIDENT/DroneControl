@@ -66,7 +66,7 @@ def sharedMemorySendReset():
 def sharedMemorySend(action):
 
     # Open the shared memory
-
+    print(action)
     memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
@@ -124,8 +124,8 @@ class DQNAgent:
 
     def select_action(self, state):
         #if np.random.rand() < 2:
-        #if np.random.rand() < epsilon:
-        #    return np.random.choice(output_size)
+        if np.random.rand() < epsilon:
+            return np.random.choice(output_size)
         with torch.no_grad():
             q_values = self.model(torch.tensor(state, dtype=torch.float32))
             return torch.argmax(q_values).item()
