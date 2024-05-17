@@ -1,6 +1,7 @@
 MainTest.exe
 MainTest.out
 GazeboPlugin/build/
+CircleMotionPlugin/build/
 MAVSDK/build/
 .vscode
 training_data.pkl

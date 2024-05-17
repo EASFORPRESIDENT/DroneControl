@@ -38,9 +38,9 @@ struct SharedData
 };
 
 
-void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData);
-bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData);
-void action_translate(SharedData *sharedData, Offboard::VelocityBodyYawspeed *velocity);
+void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData, SharedData *boxdata);
+bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData, SharedData *boxdata);
+void action_translate(SharedData *sharedData,  SharedData *boxdata, Offboard::VelocityBodyYawspeed *velocity);
 void usage(const std::string& bin_name);
 
 int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
@@ -50,7 +50,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         return 1;
     }
 
-    // Shared memory
+    // Shared memory dronepose
     const char* memoryName = "dronePoseAndReset";
     int shm_fd = shm_open(memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
     if (shm_fd == -1) {
@@ -67,6 +67,31 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     }
 
     sharedData->reset = false;
+
+
+
+
+
+    // Shared memory boxpose
+    const char* memoryName = "boxpose";
+    int shm_fd2 = shm_open(memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
+    if (shm_fd2 == -1) {
+        std::cerr << RED << "shm_open" << CLEAR << std::endl;
+    }
+
+    if (ftruncate(shm_fd2, sizeof(SharedData)) == -1) {
+        std::cerr << RED << "ftruncate" << CLEAR << std::endl;
+    }
+
+    SharedData *boxdata = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd2, 0);
+    if (boxdata == MAP_FAILED) {
+        std::cerr << RED << "mmap" << CLEAR << std::endl;
+    }
+
+    boxdata->reset = false;
+
+    //TODO: add shared memory for boxpose in the plugin
+
 
     //MAVSDK stuff
 
@@ -145,7 +170,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     }
 
     //  using body co-ordinates
-    if (!offb_ctrl_body(offboard, sharedData)) {
+    if (!offb_ctrl_body(offboard, sharedData, boxdata)) {
         return 1;
     }
 
@@ -167,6 +192,9 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
 
     munmap(sharedData, sizeof(SharedData));
     close(shm_fd);
+    munmap(boxdata, sizeof(SharedData));
+    close(shm_fd2);
+
 
     sleep_for(seconds(3));
     std::cout << "Finished...\n";
@@ -174,7 +202,7 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
     return 0;
 }
 
-void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone control code goes here
+void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData, SharedData *boxdata) // Drone control code goes here
 {
     
     float degSpeed;
@@ -187,12 +215,12 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
         
 
         //std::cout << "Action: " << sharedData->action << "\n";
-        action_translate(sharedData, &velocity);
+        action_translate(sharedData, boxdata, &velocity);
         //velocity.down_m_s = -1;
         //std::cout << "Forward: " << velocity.forward_m_s << "   Right: " << velocity.right_m_s << "   Down: " << velocity.down_m_s << "\n";
         //RunLoop = sharedData->Runloop;
         offboard.set_velocity_body(velocity);
-        sleep_for(milliseconds(20));
+        sleep_for(milliseconds(10));
     }
 
     std::cout << "Holding position...\n";
@@ -209,7 +237,7 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData) // Drone
     sleep_for(seconds(6));
 }
 
-bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
+bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData, SharedData *boxdata)
 {
     std::cout << "Starting Offboard velocity control in body coordinates\n";
 
@@ -224,7 +252,7 @@ bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData)
     }
     std::cout << "Offboard started\n";
 
-    custom_control(offboard, sharedData);
+    custom_control(offboard, sharedData, boxdata);
 
     std::cout << "Wait for a bit\n";
     sleep_for(seconds(3));
@@ -249,7 +277,7 @@ void usage(const std::string& bin_name)
               << "For example, to connect to the simulator use URL: udp://:14540\n";
 }
 
-void action_translate(SharedData *sharedData, Offboard::VelocityBodyYawspeed *velocity)
+void action_translate(SharedData *sharedData, SharedData *boxdata, Offboard::VelocityBodyYawspeed *velocity)
 {
     // PID controller gains
     float kp = 0.3; // Proportional gain
@@ -263,17 +291,23 @@ void action_translate(SharedData *sharedData, Offboard::VelocityBodyYawspeed *ve
 
     }
 
-    // Error terms
-    float error_z = sharedData->posZ - 10.0f; // Error in Z position
-    float error_y = sharedData->posX; // Error in Y position
-    float error_x = sharedData->posY; // Error in X position
-    float error_yaw = sharedData->posYaw; // Error in Yaw angle
+    // changed X and Y order. right seems to be y coordinate and forward seems to be x coordinate
+
+    float drone_z = sharedData->posZ - 10.0f; // 10m altitude
+    float drone_y = sharedData->posX;
+    float drone_x = sharedData->posY;
+    float drone_yaw = sharedData->posYaw;
+
+    float box_y = boxdata->posX;
+    float box_x = boxdata->posY;
+
+
 
     // Calculate control signals using P controller
-    float control_z = kp * error_z;
-    float control_y = -kp * error_y;
-    float control_x = kp * error_x;
-    float control_yaw = -kp * error_yaw;
+    float control_z = kp * drone_z;
+    float control_y = -kp * (drone_y - box_y);
+    float control_x = kp * (drone_x - box_x);
+    float control_yaw = -kp * drone_yaw;
 
     // Set desired velocity based on control signals
     velocity->down_m_s = control_z;
