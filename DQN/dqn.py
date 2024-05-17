@@ -66,7 +66,7 @@ def sharedMemorySendReset():
 def sharedMemorySend(action):
 
     # Open the shared memory
-    print(action)
+
     memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
