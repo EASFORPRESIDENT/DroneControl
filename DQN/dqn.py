@@ -271,6 +271,8 @@ while True:
     
     if episode > 1000:
         episode = 0
+        epsilon = 1
+        epsilon = 1
     # Plotting
     if episode % 1000 == 0:
 
