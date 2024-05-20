@@ -5,7 +5,7 @@ namespace gazebo
     int go = 0;
     void SimulationResetPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sdf)
     {
-        std::cout << "SimulationResetPlugin loaded successfully!" << std::endl;
+        std::cout << "Loading GazeboPlugin!" << std::endl;
 
         // Shared memory
         this->memoryName = "dronePoseAndReset";
@@ -23,61 +23,69 @@ namespace gazebo
             std::cerr << RED << "mmap" << CLEAR << std::endl;
         }
 
-        localData = new SharedData();
+        // Setting initial values
+        stepTimeSec = 0.200f; // Simulation time for each step in seconds
         prevTime = 0;
-        sharedData->reset = false;
+        aiConnected = false;
+        localData = new SharedData();
+        localData->reset = false;
+        localData->play = true;
+        SendSharedData();
 
         // Plugin
         this->world = _world;
+        stepStartTime = this->world.get()->SimTime();
         
         // Listen to the update event which is broadcast every simulation iteration.
         this->updateConnection = event::Events::ConnectWorldUpdateBegin(
             std::bind(&SimulationResetPlugin::OnUpdate, this));
+        
+        std::cout << "GazeboPlugin loaded successfully!" << std::endl;
     }
 
     void SimulationResetPlugin::OnUpdate()
     {
-
-
         static int count = 0;
         if (++count > 150)
-        {
+        {           
+
             if (CheckReset())
             {
                 ResetWorld();
-                //go = 1;
             }
-            
+
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
 
             SetDronePosition(dronePose);
             UpdateVelocity();
             SendSharedData();
+
             prevDronePose = dronePose;
             prevTime = this->world.get()->SimTime();
             count = 0;
+
+            if (aiConnected)
+            {
+                PauseWorld();
+            }
         }
     }
-    
 
-    void SimulationResetPlugin::ResetZ(ignition::math::Pose3d pose)
+    void SimulationResetPlugin::PauseWorld()
     {
-        double x,y,z;
-
-        x = pose.X();
-        y = pose.Y();
-        z = 10;
-
-        ignition::math::Pose3d newPose = ignition::math::Pose3d(x, y, z, 0, 0, 0);
-
-        auto model = this->world->ModelByName("iris");
-        if (model)
+        auto thisWorld = this->world.get();
+        //std::cout << "Play: " << sharedData->play << "\n";
+        if (thisWorld->SimTime().Double() - stepStartTime.Double() > stepTimeSec)
         {
-            model->SetWorldPose(newPose);
-        }
-        else
-        {
-            std::cout << "Failed to find model 'iris'." << std::endl;
+            localData->play = false;
+            SendSharedData();
+            thisWorld->SetPaused(true);
+            while (!(sharedData->play))
+            {
+                sleep_for(microseconds(10)); // Prevent lag
+            }
+            stepStartTime = thisWorld->SimTime();
+            thisWorld->SetPaused(false);
         }
     }
 
@@ -104,6 +112,7 @@ namespace gazebo
         {
         case true:
             localData->reset = false;
+            aiConnected = true;
             return true;
         default:
             return false;
@@ -144,13 +153,13 @@ namespace gazebo
     void SimulationResetPlugin::SendSharedData()
     {
         // Serialize SharedData struct into a byte array
-        serializeSharedData(*localData, buffer);
+        SerializeSharedData(*localData, buffer);
 
         // Write serialized data to shared memory
         std::memcpy(sharedData, buffer, sizeof(SharedData));
     }
 
-    void SimulationResetPlugin::serializeSharedData(const SharedData& data, char* buffer)
+    void SimulationResetPlugin::SerializeSharedData(const SharedData& data, char* buffer)
     {
         std::memcpy(buffer, &data, sizeof(SharedData));
     }

@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <iostream>
+#include <thread>
 
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
@@ -13,6 +14,11 @@
 #define RED "\033[31m"
 #define CLEAR "\033[0m"
 
+using std::chrono::microseconds;
+using std::chrono::milliseconds;
+using std::chrono::seconds;
+using std::this_thread::sleep_for;
+
 //hello from eas
 
 namespace gazebo
@@ -20,6 +26,7 @@ namespace gazebo
     struct SharedData
     {
         bool reset;
+        bool play;
         
         double posX;
         double posY;
@@ -37,13 +44,15 @@ namespace gazebo
         void Load(physics::WorldPtr _world, sdf::ElementPtr _sdf) override;
         void OnUpdate();
         void ResetWorld();
-        void ResetZ(ignition::math::Pose3d pose);
 
 
     private:
         const char *memoryName;
         int shm_fd;
+        double stepTimeSec;
+        gazebo::common::Time stepStartTime;
         char buffer[sizeof(SharedData)];
+        bool aiConnected;
 
         SharedData* localData;
         SharedData* sharedData;
@@ -56,7 +65,8 @@ namespace gazebo
 
         
 
-        void serializeSharedData(const SharedData& data, char* buffer);
+        void PauseWorld();
+        void SerializeSharedData(const SharedData& data, char* buffer);
         void SetDronePosition(ignition::math::Pose3d position);
         void UpdateVelocity();
         void SendSharedData();
