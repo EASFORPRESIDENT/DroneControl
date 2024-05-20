@@ -37,48 +37,46 @@ namespace gazebo
 
     void SimulationResetPlugin::OnUpdate()
     {
-
-
         static int count = 0;
         if (++count > 150)
         {
+            if (PauseWorld())
+                return;
+
             if (CheckReset())
             {
                 ResetWorld();
-                //go = 1;
             }
-            
+
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
 
             SetDronePosition(dronePose);
             UpdateVelocity();
             SendSharedData();
+
             prevDronePose = dronePose;
             prevTime = this->world.get()->SimTime();
             count = 0;
         }
     }
-    
 
-    void SimulationResetPlugin::ResetZ(ignition::math::Pose3d pose)
+    bool SimulationResetPlugin::PauseWorld()
     {
-        double x,y,z;
-
-        x = pose.X();
-        y = pose.Y();
-        z = 10;
-
-        ignition::math::Pose3d newPose = ignition::math::Pose3d(x, y, z, 0, 0, 0);
-
-        auto model = this->world->ModelByName("iris");
-        if (model)
+        auto thisWorld = this->world.get();
+        switch (sharedData->play)
         {
-            model->SetWorldPose(newPose);
+        case true:
+            thisWorld->SetPaused(false);
+            break;
+        case false:
+            thisWorld->SetPaused(true);
+            return true;
+            break;
+        default:
+            break;
         }
-        else
-        {
-            std::cout << "Failed to find model 'iris'." << std::endl;
-        }
+
+        return false;
     }
 
     void SimulationResetPlugin::ResetWorld()
@@ -144,13 +142,13 @@ namespace gazebo
     void SimulationResetPlugin::SendSharedData()
     {
         // Serialize SharedData struct into a byte array
-        serializeSharedData(*localData, buffer);
+        SerializeSharedData(*localData, buffer);
 
         // Write serialized data to shared memory
         std::memcpy(sharedData, buffer, sizeof(SharedData));
     }
 
-    void SimulationResetPlugin::serializeSharedData(const SharedData& data, char* buffer)
+    void SimulationResetPlugin::SerializeSharedData(const SharedData& data, char* buffer)
     {
         std::memcpy(buffer, &data, sizeof(SharedData));
     }

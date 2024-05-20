@@ -20,6 +20,7 @@ namespace gazebo
     struct SharedData
     {
         bool reset;
+        bool play;
         
         double posX;
         double posY;
@@ -37,7 +38,6 @@ namespace gazebo
         void Load(physics::WorldPtr _world, sdf::ElementPtr _sdf) override;
         void OnUpdate();
         void ResetWorld();
-        void ResetZ(ignition::math::Pose3d pose);
 
 
     private:
@@ -56,7 +56,8 @@ namespace gazebo
 
         
 
-        void serializeSharedData(const SharedData& data, char* buffer);
+        bool PauseWorld();
+        void SerializeSharedData(const SharedData& data, char* buffer);
         void SetDronePosition(ignition::math::Pose3d position);
         void UpdateVelocity();
         void SendSharedData();
