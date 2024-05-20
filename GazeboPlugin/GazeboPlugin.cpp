@@ -63,19 +63,12 @@ namespace gazebo
     bool SimulationResetPlugin::PauseWorld()
     {
         auto thisWorld = this->world.get();
-        switch (sharedData->play)
+        if (!(sharedData->play))
         {
-        case true:
-            thisWorld->SetPaused(false);
-            break;
-        case false:
             thisWorld->SetPaused(true);
             return true;
-            break;
-        default:
-            break;
         }
-
+        thisWorld->SetPaused(false);
         return false;
     }
 
