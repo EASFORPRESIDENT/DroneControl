@@ -60,6 +60,9 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
         std::cerr << RED << "mmap" << CLEAR << std::endl;
     }
 
+    // Initiate sharedData values
+    sharedData->action = 0;
+    sharedData->Zpos = 10;
     sharedData->RunLoop = true;
 
     //MAVSDK stuff
