@@ -24,11 +24,13 @@ namespace gazebo
         }
 
         // Setting initial values
+        stepTimeSec = 0.200f; // Simulation time for each step in seconds
         prevTime = 0;
         aiConnected = false;
         localData = new SharedData();
         localData->reset = false;
         localData->play = true;
+        stepStartTime = this->world.get()->SimTime();
         SendSharedData();
 
         // Plugin
@@ -43,12 +45,7 @@ namespace gazebo
     {
         static int count = 0;
         if (++count > 150)
-        {
-            if (aiConnected)
-            {
-                PauseWorld();
-            }
-            
+        {           
 
             if (CheckReset())
             {
@@ -64,6 +61,11 @@ namespace gazebo
             prevDronePose = dronePose;
             prevTime = this->world.get()->SimTime();
             count = 0;
+
+            if (aiConnected)
+            {
+                PauseWorld();
+            }
         }
     }
 
@@ -71,12 +73,17 @@ namespace gazebo
     {
         auto thisWorld = this->world.get();
         //std::cout << "Play: " << sharedData->play << "\n";
-        if (sharedData->play)
+        if (thisWorld->SimTime().Double() - stepStartTime.Double() > stepTimeSec)
         {
-            thisWorld->SetPaused(false);
-            sleep_for(seconds(1));
-            thisWorld->SetPaused(true);
             localData->play = false;
+            SendSharedData();
+            thisWorld->SetPaused(true);
+            while (!(sharedData->play))
+            {
+                sleep_for(microseconds(10)); // Prevent lag
+            }
+            stepStartTime = thisWorld->SimTime();
+            thisWorld->SetPaused(false);
         }
     }
 

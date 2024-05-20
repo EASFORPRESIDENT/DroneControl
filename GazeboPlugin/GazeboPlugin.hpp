@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <iostream>
+#include <thread>
 
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
@@ -13,6 +14,7 @@
 #define RED "\033[31m"
 #define CLEAR "\033[0m"
 
+using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -47,6 +49,8 @@ namespace gazebo
     private:
         const char *memoryName;
         int shm_fd;
+        double stepTimeSec;
+        gazebo::common::Time stepStartTime;
         char buffer[sizeof(SharedData)];
         bool aiConnected;
 
