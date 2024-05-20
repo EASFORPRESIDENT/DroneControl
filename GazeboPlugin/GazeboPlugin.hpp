@@ -48,6 +48,7 @@ namespace gazebo
         const char *memoryName;
         int shm_fd;
         char buffer[sizeof(SharedData)];
+        bool aiConnected;
 
         SharedData* localData;
         SharedData* sharedData;

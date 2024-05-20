@@ -25,6 +25,7 @@ namespace gazebo
 
         // Setting initial values
         prevTime = 0;
+        aiConnected = false;
         localData = new SharedData();
         localData->reset = false;
         localData->play = true;
@@ -43,7 +44,11 @@ namespace gazebo
         static int count = 0;
         if (++count > 150)
         {
-            PauseWorld();
+            if (aiConnected)
+            {
+                PauseWorld();
+            }
+            
 
             if (CheckReset())
             {
@@ -66,12 +71,12 @@ namespace gazebo
     {
         auto thisWorld = this->world.get();
         //std::cout << "Play: " << sharedData->play << "\n";
-        if (!(sharedData->play))
+        if (sharedData->play)
         {
-            thisWorld->SetPaused(true);
-            sleep_for(seconds(1));
             thisWorld->SetPaused(false);
-            localData->play = true;
+            sleep_for(seconds(1));
+            thisWorld->SetPaused(true);
+            localData->play = false;
         }
     }
 
@@ -98,6 +103,7 @@ namespace gazebo
         {
         case true:
             localData->reset = false;
+            aiConnected = true;
             return true;
         default:
             return false;
