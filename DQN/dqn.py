@@ -66,7 +66,7 @@ def sharedMemorySendPlay():
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
-    reset_to_send = struct.pack('??dddddddd', True, True, 0,0,getZ(),0,0,0,0,0)
+    reset_to_send = struct.pack('??dddddddd', False, True, 0,0,getZ(),0,0,0,0,0)
     mapped_send.write(reset_to_send)
 
 
