@@ -74,7 +74,6 @@ def sharedMemorySendPlay():
     mapped_send.close()
     memory_s.close_fd()
 
-
 #Send chosen action through shared memory
 def sharedMemorySend(action):
 
@@ -183,9 +182,6 @@ class DQNAgent:
         except FileNotFoundError:
             print("No existing training data file found.")
 
-# Example usage
-agent = DQNAgent()
-
 class Environment:
     def __init__(self):
         self.state_space = 5
@@ -226,6 +222,8 @@ class Environment:
 
         a = 4
         reward = 10 * math.exp(-a * distance_to_target)
+        if distance_to_target >= max_distance:
+            reward = -10
 
         #reward =  max(0, 1 - distance_to_target / max_distance)
 
@@ -245,7 +243,7 @@ def getZ():
     return Z_pos
 
 env = Environment()
-
+agent = DQNAgent()
 print("Booting AI model...")
 agent.load_memory("training_data.pkl")
 # Assuming you have an environment with x, y, and z positions
