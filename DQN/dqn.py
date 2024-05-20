@@ -10,6 +10,7 @@ import struct
 import pickle
 import matplotlib.pyplot as plt
 from IPython import display
+import math
 
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
@@ -20,12 +21,10 @@ RunLoop = True
 #Receive position of drone through shared memory
 def sharedMemoryReceive():
     # Open the shared memory
-
     memory = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
     mapped_memory = mmap.mmap(memory.fd, memory.size)
-
 
     # Read serialized data from the shared memory
     serialized_data = mapped_memory.read()
@@ -43,65 +42,57 @@ def sharedMemoryReceive():
 def sharedMemorySendReset():
 
     # Open the shared memory
-
     memory_s = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
-
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
     reset_to_send = struct.pack('?dddddddd', True,0,0,getZ(),0,0,0,0,0)
-
     mapped_send.write(reset_to_send)
 
     print("Reset Complete")
 
-  # Clean up resources when done
+    # Clean up resources when done
     mapped_send.close()
     memory_s.close_fd()
-
 
 #Send chosen action through shared memory
 def sharedMemorySend(action):
 
     # Open the shared memory
-
     memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
-
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
-    #time.sleep(0.5)
     action_to_send = struct.pack('id?', action, getZ(), RunLoop)
-
     mapped_send.write(action_to_send)
 
   # Clean up resources when done
     mapped_send.close()
     memory_s.close_fd()
 
-
-
 class DQN(nn.Module):
     def __init__(self, input_size, output_size):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(input_size, 128)
         self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, output_size)
+        self.fc3 = nn.Linear(64, 32)
+        self.fc4 = nn.Linear(32, output_size)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = torch.relu(self.fc3(x))
+        x = self.fc4(x)
         return x
     
 # Define some hyperparameters
 input_size = 5  # x and y positions
 output_size = 5  # Number of possible actions
-learning_rate = 0.001
-gamma = 0.99  # Discount factor
+learning_rate = 0.1
+gamma = 0.95  # Discount factor
 epsilon = 1.0  # Exploration rate
 epsilon_decay = 0.995
 min_epsilon = 0.01
@@ -212,7 +203,10 @@ class Environment:
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
-        reward =  max(0, 1 - distance_to_target / max_distance)
+        a = 4
+        reward = 10 * math.exp(-a * distance_to_target)
+
+        #reward =  max(0, 1 - distance_to_target / max_distance)
 
         #reward_two = max(0,1 - abs((10-posZ))/5)
 
