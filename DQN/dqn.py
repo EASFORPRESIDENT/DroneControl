@@ -30,15 +30,15 @@ def sharedMemoryReceive():
     serialized_data = mapped_memory.read()
 
     # Deserialize the data to extract individual fields
-    reset, posX, posY, posZ, posYaw, velX, velY, velZ, velYaw = struct.unpack('?dddddddd', serialized_data)
+    reset, play, posX, posY, posZ, posYaw, velX, velY, velZ, velYaw = struct.unpack('??dddddddd', serialized_data)
 
     # Clean up resources when done
     mapped_memory.close()
     memory.close_fd()
 
-    return reset, posX, posY, posYaw, posZ, velX, velY, velZ, velYaw
+    return reset, play, posX, posY, posYaw, posZ, velX, velY, velZ, velYaw
 
-#Send chosen action through shared memory
+#Send reset through shared memory
 def sharedMemorySendReset():
 
     # Open the shared memory
@@ -48,7 +48,7 @@ def sharedMemorySendReset():
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
-    reset_to_send = struct.pack('?dddddddd', True,0,0,getZ(),0,0,0,0,0)
+    reset_to_send = struct.pack('?dddddddd', True, True, 0,0,getZ(),0,0,0,0,0)
     mapped_send.write(reset_to_send)
 
     print("Reset Complete")
@@ -56,6 +56,24 @@ def sharedMemorySendReset():
     # Clean up resources when done
     mapped_send.close()
     memory_s.close_fd()
+
+def sharedMemorySendPlay():
+
+    # Open the shared memory
+    memory_s = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
+
+    # Map the shared memory into the address space
+    mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
+
+
+    reset_to_send = struct.pack('??dddddddd', True, True, 0,0,getZ(),0,0,0,0,0)
+    mapped_send.write(reset_to_send)
+
+
+    # Clean up resources when done
+    mapped_send.close()
+    memory_s.close_fd()
+
 
 #Send chosen action through shared memory
 def sharedMemorySend(action):
@@ -184,7 +202,7 @@ class Environment:
         sharedMemorySend(0)
 
         while reset:
-            reset, X_pos, Y_pos, posYaw , Z_pos, X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
+            reset, play, X_pos, Y_pos, posYaw , Z_pos, X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
             time.sleep(0.1)
         return X_pos, Y_pos, posYaw, X_vel, Y_vel
 
@@ -194,7 +212,9 @@ class Environment:
 
         #receive from open memory
 
-        done, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
+        while play:
+            done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
+            time.sleep(0.05)
 
         #print(done,X_pos,Y_pos)
 
@@ -253,6 +273,8 @@ while True:
         total_reward += reward
         agent.replay()
         nm_of_steps = nm_of_steps + 1
+
+        sharedMemorySendPlay()
     # Append total reward for this episode to episode_rewards list for ploting
     episode_rewards.append(total_reward)
 
