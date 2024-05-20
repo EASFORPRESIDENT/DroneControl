@@ -5,7 +5,7 @@ namespace gazebo
     int go = 0;
     void SimulationResetPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sdf)
     {
-        std::cout << "SimulationResetPlugin loaded successfully!" << std::endl;
+        std::cout << "Loading GazeboPlugin!" << std::endl;
 
         // Shared memory
         this->memoryName = "dronePoseAndReset";
@@ -30,15 +30,17 @@ namespace gazebo
         localData = new SharedData();
         localData->reset = false;
         localData->play = true;
-        stepStartTime = this->world.get()->SimTime();
         SendSharedData();
 
         // Plugin
         this->world = _world;
+        stepStartTime = this->world.get()->SimTime();
         
         // Listen to the update event which is broadcast every simulation iteration.
         this->updateConnection = event::Events::ConnectWorldUpdateBegin(
             std::bind(&SimulationResetPlugin::OnUpdate, this));
+        
+        std::cout << "GazeboPlugin loaded successfully!" << std::endl;
     }
 
     void SimulationResetPlugin::OnUpdate()
