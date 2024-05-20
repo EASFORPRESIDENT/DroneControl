@@ -24,7 +24,7 @@ namespace gazebo
         }
 
         // Setting initial values
-        stepTimeSec = 0.200f; // Simulation time for each step in seconds
+        stepTimeSec = 0.005f; // Simulation time for each step in seconds
         prevTime = 0;
         aiConnected = false;
         localData = new SharedData();
