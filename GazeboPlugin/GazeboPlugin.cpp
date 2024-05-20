@@ -26,6 +26,7 @@ namespace gazebo
         localData = new SharedData();
         prevTime = 0;
         sharedData->reset = false;
+        sharedData->play = true;
 
         // Plugin
         this->world = _world;
