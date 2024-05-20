@@ -21,12 +21,10 @@ RunLoop = True
 #Receive position of drone through shared memory
 def sharedMemoryReceive():
     # Open the shared memory
-
     memory = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
     mapped_memory = mmap.mmap(memory.fd, memory.size)
-
 
     # Read serialized data from the shared memory
     serialized_data = mapped_memory.read()
@@ -44,46 +42,36 @@ def sharedMemoryReceive():
 def sharedMemorySendReset():
 
     # Open the shared memory
-
     memory_s = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
-
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
     reset_to_send = struct.pack('?dddddddd', True,0,0,getZ(),0,0,0,0,0)
-
     mapped_send.write(reset_to_send)
 
     print("Reset Complete")
 
-  # Clean up resources when done
+    # Clean up resources when done
     mapped_send.close()
     memory_s.close_fd()
-
 
 #Send chosen action through shared memory
 def sharedMemorySend(action):
 
     # Open the shared memory
-
     memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
 
     # Map the shared memory into the address space
-
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
-    #time.sleep(0.5)
     action_to_send = struct.pack('id?', action, getZ(), RunLoop)
-
     mapped_send.write(action_to_send)
 
   # Clean up resources when done
     mapped_send.close()
     memory_s.close_fd()
-
-
 
 class DQN(nn.Module):
     def __init__(self, input_size, output_size):
