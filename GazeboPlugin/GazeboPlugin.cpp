@@ -23,10 +23,12 @@ namespace gazebo
             std::cerr << RED << "mmap" << CLEAR << std::endl;
         }
 
-        localData = new SharedData();
+        // Setting initial values
         prevTime = 0;
-        sharedData->reset = false;
-        sharedData->play = true;
+        localData = new SharedData();
+        localData->reset = false;
+        localData->play = true;
+        SendSharedData();
 
         // Plugin
         this->world = _world;
@@ -41,8 +43,7 @@ namespace gazebo
         static int count = 0;
         if (++count > 150)
         {
-            if (PauseWorld())
-                return;
+            PauseWorld();
 
             if (CheckReset())
             {
@@ -61,16 +62,17 @@ namespace gazebo
         }
     }
 
-    bool SimulationResetPlugin::PauseWorld()
+    void SimulationResetPlugin::PauseWorld()
     {
         auto thisWorld = this->world.get();
+        //std::cout << "Play: " << sharedData->play << "\n";
         if (!(sharedData->play))
         {
             thisWorld->SetPaused(true);
-            return true;
+            sleep_for(seconds(1));
+            thisWorld->SetPaused(false);
+            localData->play = true;
         }
-        thisWorld->SetPaused(false);
-        return false;
     }
 
     void SimulationResetPlugin::ResetWorld()
