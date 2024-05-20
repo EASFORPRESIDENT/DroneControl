@@ -48,7 +48,7 @@ def sharedMemorySendReset():
     mapped_send = mmap.mmap(memory_s.fd, memory_s.size)
 
 
-    reset_to_send = struct.pack('?dddddddd', True, True, 0,0,getZ(),0,0,0,0,0)
+    reset_to_send = struct.pack('??dddddddd', True, True, 0,0,getZ(),0,0,0,0,0)
     mapped_send.write(reset_to_send)
 
     print("Reset Complete")
@@ -239,7 +239,7 @@ class Environment:
         return next_state, reward, done, {}
 
 def getZ():
-    done, X_pos, Y_pos, posYaw, Z_pos, X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
+    done, play, X_pos, Y_pos, posYaw, Z_pos, X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
 
     return Z_pos
 
