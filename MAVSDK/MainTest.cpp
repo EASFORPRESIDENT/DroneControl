@@ -73,8 +73,8 @@ int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
 
 
     // Shared memory boxpose
-    const char* memoryName = "boxpose";
-    int shm_fd2 = shm_open(memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
+    const char* memoryName2 = "boxpose";
+    int shm_fd2 = shm_open(memoryName2, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
     if (shm_fd2 == -1) {
         std::cerr << RED << "shm_open" << CLEAR << std::endl;
     }
@@ -280,7 +280,7 @@ void usage(const std::string& bin_name)
 void action_translate(SharedData *sharedData, SharedData *boxdata, Offboard::VelocityBodyYawspeed *velocity)
 {
     // PID controller gains
-    float kp = 0.3; // Proportional gain
+    float kp = 1; // Proportional gain
     int static counter = 0;
     counter++;
     if(counter == 500){
@@ -293,26 +293,26 @@ void action_translate(SharedData *sharedData, SharedData *boxdata, Offboard::Vel
 
     // changed X and Y order. right seems to be y coordinate and forward seems to be x coordinate
 
-    float drone_z = sharedData->posZ - 10.0f; // 10m altitude
-    float drone_y = sharedData->posX;
-    float drone_x = sharedData->posY;
+    float drone_z = sharedData->posZ - 3.0f; // 3m altitude
+    float drone_y = sharedData->posY;
+    float drone_x = sharedData->posX;
     float drone_yaw = sharedData->posYaw;
 
-    float box_y = boxdata->posX;
-    float box_x = boxdata->posY;
+    float box_y = boxdata->posY;
+    float box_x = boxdata->posX;
 
 
 
     // Calculate control signals using P controller
     float control_z = kp * drone_z;
-    float control_y = -kp * (drone_y - box_y);
-    float control_x = kp * (drone_x - box_x);
+    float control_y = kp * (drone_y - box_y);
+    float control_x = -kp * (drone_x - box_x);
     float control_yaw = -kp * drone_yaw;
 
     // Set desired velocity based on control signals
     velocity->down_m_s = control_z;
-    velocity->forward_m_s = control_y;
-    velocity->right_m_s = control_x;
+    velocity->forward_m_s = control_x;
+    velocity->right_m_s = control_y;
     velocity->yawspeed_deg_s = control_yaw;
 }
 //testing

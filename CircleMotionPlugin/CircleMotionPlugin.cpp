@@ -18,6 +18,14 @@
 
 
 namespace gazebo
+/**
+ * @brief This file contains the implementation of the CircleMotionPlugin class.
+ * 
+ * The CircleMotionPlugin class is a Gazebo model plugin that enables a model to move in a circular motion.
+ * It listens to the update event and calculates the x and y coordinates of the model's position based on the current simulation time.
+ * The calculated position is then set as the world pose of the model.
+ * The plugin also uses shared memory to store and share the position data with other processes.
+ */
 {
   class CircleMotionPlugin : public ModelPlugin
   {
@@ -33,21 +41,22 @@ namespace gazebo
       this->updateConnection = event::Events::ConnectWorldUpdateBegin(
           std::bind(&CircleMotionPlugin::OnUpdate, this));
 
-        // Shared memory
-        this->memoryName = "boxpose";
-        this->shm_fd = shm_open(this->memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
-        if (this->shm_fd == -1) {
-            std::cerr << RED << "shm_open" << CLEAR << std::endl;
-        }
 
-        if (ftruncate(this->shm_fd, sizeof(SharedData)) == -1) {
-            std::cerr << RED << "ftruncate" << CLEAR << std::endl;
-        }
+      // Shared memory
+      this->memoryName = "boxpose";
+      this->shm_fd = shm_open(this->memoryName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IXUSR);
+      if (this->shm_fd == -1) {
+          std::cerr << RED << "shm_open" << CLEAR << std::endl;
+      }
 
-        this->sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, this->shm_fd, 0);
-        if (this->sharedData == MAP_FAILED) {
-            std::cerr << RED << "mmap" << CLEAR << std::endl;
-        }
+      if (ftruncate(this->shm_fd, sizeof(SharedData)) == -1) {
+          std::cerr << RED << "ftruncate" << CLEAR << std::endl;
+      }
+
+      this->sharedData = (SharedData*) mmap(0, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, this->shm_fd, 0);
+      if (this->sharedData == MAP_FAILED) {
+          std::cerr << RED << "mmap" << CLEAR << std::endl;
+      }
 
         //localData = new SharedData();
 
@@ -80,23 +89,24 @@ namespace gazebo
     }
 
     // Pointer to the model
-    private: physics::ModelPtr model;
+    private: 
+      physics::ModelPtr model;
 
-    struct SharedData
-    {
-      bool reset;
-      double posX;
-      double posY;
-      double posZ;
-      double posYaw;
-    };
+      struct SharedData
+      {
+        bool reset;
+        double posX;
+        double posY;
+        double posZ;
+        double posYaw;
+      };
 
 
-    SharedData* localData;
-    SharedData* sharedData;
-    const char *memoryName;
-    int shm_fd;
-    char buffer[sizeof(SharedData)];
+      SharedData* localData;
+      SharedData* sharedData;
+      const char *memoryName;
+      int shm_fd;
+      char buffer[sizeof(SharedData)];
 
 
 
