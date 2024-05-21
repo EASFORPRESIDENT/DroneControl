@@ -77,7 +77,6 @@ def sharedMemorySendPlay():
 
 #Send chosen action through shared memory
 def sharedMemorySend(action):
-    print("Action: " + str(action))
 
     # Open the shared memory
     memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
@@ -220,7 +219,6 @@ class Environment:
         X_pos = 0
         Y_pos = 0
 
-
     def reset(self):
         print("Reseting...")
         reset = 1
@@ -233,8 +231,6 @@ class Environment:
             time.sleep(0.01)
         return X_pos, Y_pos, posYaw, X_vel, Y_vel
 
-
-
     def step(self, action, steps):
 
         #receive from open memory
@@ -243,24 +239,20 @@ class Environment:
             done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
             time.sleep(0.01)
 
-        print("\nposX: " + str(X_pos) + "\nposY: " + str(Y_pos) + "\nYaw: " + str(posYaw) + "\nvelX: " + str(X_vel) + "\nvelY: " + str(Y_vel) + "\n")
-        #print(done,X_pos,Y_pos)
-
+        print("Action: " + str(action))
+        print("\nposX: " + str(X_pos) + "\nposY: " + str(Y_pos) + "\nYaw: " + str(posYaw) + "\nvelX: " + str(X_vel) + "\nvelY: " + str(Y_vel) + "\nDistance: " "\n")
 
         next_state = X_pos, Y_pos, posYaw, X_vel, Y_vel
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
         a = 2
-        reward = 5 * math.exp(-a * distance_to_target) - 5
+        reward = math.exp(-a * distance_to_target)
         if distance_to_target >= max_distance:
             reward = -10
 
+
         #reward =  max(0, 1 - distance_to_target / max_distance)
-
-        #reward_two = max(0,1 - abs((10-posZ))/5)
-
-        #reward = 0.7*reward_one #+ 0.3*reward_two
 
         if distance_to_target >= max_distance or steps >= max_steps:
             done =  1 
@@ -302,24 +294,18 @@ while True:
     done = False
 
     while not done:
-        action = agent.select_action(state)
-        #print(action)
+        action = agent.select_action(state) # Select Action
+        sharedMemorySend(action) # Send action
+        sharedMemorySendPlay() # Wait for Gazebo to simulate step
+        next_state, reward, done, _ = env.step(action,nm_of_steps) # Get new state and reward
 
-
-        #send action to MAVsdk script through open memory
-        sharedMemorySend(action)
-
-        next_state, reward, done, _ = env.step(action,nm_of_steps)
-
-        print(state)
-        print(next_state)
         agent.remember(state, action, reward, next_state, done)
         state = next_state
         total_reward += reward
         agent.replay()
         nm_of_steps = nm_of_steps + 1
 
-        sharedMemorySendPlay()
+        
     # Append total reward for this episode to episode_rewards list for ploting
     episode_rewards.append(total_reward)
 

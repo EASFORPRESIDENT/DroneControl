@@ -4,3 +4,5 @@ GazeboPlugin/build
 MAVSDK/build
 .vscode
 training_data.pkl
+training_data_memory.pkl
+training_data_model.pth

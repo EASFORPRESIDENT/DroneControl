@@ -48,9 +48,10 @@ namespace gazebo
         static int count = 0;
         if (++count > 150)
         {           
-
+            resetActive = false;
             if (CheckReset())
             {
+                resetActive = true;
                 ResetWorld();
             }
 
@@ -144,12 +145,24 @@ namespace gazebo
 
     void SimulationResetPlugin::UpdateVelocity()
     {
-        auto currentTime = this->world.get()->SimTime();
-        auto deltaTime = (currentTime - prevTime).Double();
-        localData->velX = (localData->posX - prevDronePose.X()) / deltaTime;
-        localData->velY = (localData->posY - prevDronePose.Y()) / deltaTime;
-        localData->velZ = (localData->posZ - prevDronePose.Z()) / deltaTime;
-        localData->velYaw = (localData->posX - prevDronePose.Yaw()) / deltaTime;
+        if (!resetActive)
+        {
+            auto currentTime = this->world.get()->SimTime();
+            auto deltaTime = (currentTime - prevTime).Double();
+            localData->velX = (localData->posX - prevDronePose.X()) / deltaTime;
+            localData->velY = (localData->posY - prevDronePose.Y()) / deltaTime;
+            localData->velZ = (localData->posZ - prevDronePose.Z()) / deltaTime;
+            localData->velYaw = (localData->posX - prevDronePose.Yaw()) / deltaTime;
+        }
+        else
+        {
+            localData->velX = 0.0f;
+            localData->velY = 0.0f;
+            localData->velZ = 0.0f;
+            localData->velYaw = 0.0f;
+        }
+        
+        
     }
 
     void SimulationResetPlugin::SendSharedData()
