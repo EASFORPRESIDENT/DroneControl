@@ -11,6 +11,7 @@ import pickle
 import matplotlib.pyplot as plt
 from IPython import display
 import math
+import os
 
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
@@ -111,15 +112,15 @@ input_size = 5  # x and y positions
 output_size = 5  # Number of possible actions
 learning_rate = 0.1
 gamma = 0.95  # Discount factor
-epsilon = 0.0  # Exploration rate
-epsilon_decay = 0.995
+epsilon = 1.0  # Exploration rate
+epsilon_decay = 0.9999
 min_epsilon = 0.01
-memory_size = 10000  # Replay memory size
-batch_size = 64
+memory_size = 1000000  # Replay memory size
+batch_size = 128
 
 # Max distance of drone from target
 max_distance = 2
-max_steps = 500
+max_steps = 200
 
 
 # Define the DQN agent
@@ -170,18 +171,47 @@ class DQNAgent:
     def update_target_network(self):
         self.target_model.load_state_dict(self.model.state_dict())
 
-    def save_memory(self, filename):
-        with open(filename, 'wb') as f:
-            pickle.dump(self.memory, f)
-        print("Training data saved to", filename)
+    #def save_memory(self, filename):
+     #   with open(filename, 'wb') as f:
+       #     pickle.dump(self.memory, f)
+       # print("Training data saved to", filename)
 
-    def load_memory(self, filename):
+    #def load_memory(self, filename):
+    #    try:
+     #       with open(filename, 'rb') as f:
+     #       DQNAgent    self.memory = pickle.load(f)
+     #       print("Training data loaded from", filename)
+     #   except FileNotFoundError:
+     #
+     #        print("No existing training data file found.")
+    def save(self, filename):
+        with open(filename + '_memory.pkl', 'wb') as f:
+            pickle.dump(self.memory, f)
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'target_model_state_dict': self.target_model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'epsilon': epsilon,
+        }, filename + '_model.pth')
+        print("Training data, model, and optimizer state saved to", filename)
+
+    def load(self, filename):
         try:
-            with open(filename, 'rb') as f:
+            with open(filename + '_memory.pkl', 'rb') as f:
                 self.memory = pickle.load(f)
-            print("Training data loaded from", filename)
+            checkpoint = torch.load(filename + '_model.pth')
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.target_model.load_state_dict(checkpoint['target_model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            global epsilon
+            epsilon = checkpoint['epsilon']
+            print("Training data, model, and optimizer state loaded from", filename)
         except FileNotFoundError:
             print("No existing training data file found.")
+
+
+# Example usage
+agent = DQNAgent()
 
 class Environment:
     def __init__(self):
@@ -200,7 +230,7 @@ class Environment:
 
         while reset:
             reset, play, X_pos, Y_pos, posYaw , Z_pos, X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
-            time.sleep(0.1)
+            time.sleep(0.01)
         return X_pos, Y_pos, posYaw, X_vel, Y_vel
 
 
@@ -211,7 +241,7 @@ class Environment:
         done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
         while play:
             done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
-            time.sleep(0.05)
+            time.sleep(0.01)
 
         print("\nposX: " + str(X_pos) + "\nposY: " + str(Y_pos) + "\nYaw: " + str(posYaw) + "\nvelX: " + str(X_vel) + "\nvelY: " + str(Y_vel) + "\n")
         #print(done,X_pos,Y_pos)
@@ -246,7 +276,20 @@ def getZ():
 env = Environment()
 agent = DQNAgent()
 print("Booting AI model...")
-agent.load_memory("training_data.pkl")
+#agent.load_memory("training_data.pkl") #tempmem
+#agent = DQNAgent() #tempmem
+agent.load("/home/andreas/DroneControl/training_data")  # Load training data if exists tempmem
+# Check if the model is loaded successfully
+print("Model loaded successfully.")
+
+# Print some information about the loaded model
+print("Model architecture:")
+print(agent.model)  # Print the model architecture
+print("Model parameters:")
+for name, param in agent.model.named_parameters():
+    print(name, param.size())  # Print the name and size of each parameter
+
+save_interval = 100 #tempmem
 # Assuming you have an environment with x, y, and z positions
 episode_rewards = [] #defining list for ploting
 num_episodes = 1000
@@ -268,6 +311,8 @@ while True:
 
         next_state, reward, done, _ = env.step(action,nm_of_steps)
 
+        print(state)
+        print(next_state)
         agent.remember(state, action, reward, next_state, done)
         state = next_state
         total_reward += reward
@@ -281,7 +326,9 @@ while True:
     agent.update_target_network()
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
-    agent.save_memory("training_data.pkl")
+    #agent.save_memory("training_data.pkl")#tempmem
+    if (episode + 1) % save_interval == 0:
+        agent.save("/home/andreas/DroneControl/training_data")
     episode += 1
 
     
@@ -289,7 +336,7 @@ while True:
         episode = 0
         epsilon = 1
     # Plotting
-    if episode % 1000 == 0:
+    if episode % 2 == 0:
 
         plt.figure(1)
         training_reward = torch.tensor(episode_rewards, dtype=torch.float)

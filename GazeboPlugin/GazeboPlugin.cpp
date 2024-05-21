@@ -24,7 +24,7 @@ namespace gazebo
         }
 
         // Setting initial values
-        stepTimeSec = 0.100f; // Simulation time for each step in seconds
+        stepTimeSec = 0.05f; // Simulation time for each step in seconds
         prevTime = 0;
         aiConnected = false;
         localData = new SharedData();
@@ -125,8 +125,10 @@ namespace gazebo
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis(-1.5, 1.5);
 
-        double x = dis(gen);
-        double y = dis(gen);
+        //double x = dis(gen);
+        double x = 1;
+        //double y = dis(gen);
+        double y = 1;
         double z = 10; // Altitude
 
         return ignition::math::Pose3d(x, y, z, 0, 0, 0);
