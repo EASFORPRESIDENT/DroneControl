@@ -311,8 +311,6 @@ while True:
 
         next_state, reward, done, _ = env.step(action,nm_of_steps)
 
-        print(state)
-        print(next_state)
         agent.remember(state, action, reward, next_state, done)
         state = next_state
         total_reward += reward
