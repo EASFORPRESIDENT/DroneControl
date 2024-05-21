@@ -119,7 +119,7 @@ batch_size = 128
 
 # Max distance of drone from target
 max_distance = 2
-max_steps = 1000
+max_steps = 200
 
 
 # Define the DQN agent
@@ -208,11 +208,10 @@ class DQNAgent:
         except FileNotFoundError:
             print("No existing training data file found.")
 
-<<<<<<< HEAD
+
 # Example usage
 agent = DQNAgent()
-=======
->>>>>>> 9a6e5ccdeaeeef94fe0b2a6a92cf6fb022e7bda3
+
 class Environment:
     def __init__(self):
         self.state_space = 5
@@ -230,7 +229,7 @@ class Environment:
 
         while reset:
             reset, play, X_pos, Y_pos, posYaw , Z_pos, X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
-            time.sleep(0.1)
+            time.sleep(0.01)
         return X_pos, Y_pos, posYaw, X_vel, Y_vel
 
 
@@ -241,7 +240,7 @@ class Environment:
         done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
         while play:
             done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
-            time.sleep(0.05)
+            time.sleep(0.01)
 
 
         #print(done,X_pos,Y_pos)
@@ -278,7 +277,7 @@ agent = DQNAgent()
 print("Booting AI model...")
 #agent.load_memory("training_data.pkl") #tempmem
 #agent = DQNAgent() #tempmem
-agent.load("training_data")  # Load training data if exists tempmem
+agent.load("/home/andreas/DroneControl/training_data")  # Load training data if exists tempmem
 # Check if the model is loaded successfully
 print("Model loaded successfully.")
 
@@ -311,6 +310,8 @@ while True:
 
         next_state, reward, done, _ = env.step(action,nm_of_steps)
 
+        print(state)
+        print(next_state)
         agent.remember(state, action, reward, next_state, done)
         state = next_state
         total_reward += reward
@@ -326,7 +327,7 @@ while True:
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
     #agent.save_memory("training_data.pkl")#tempmem
     if (episode + 1) % save_interval == 0:
-        agent.save("training_data")
+        agent.save("/home/andreas/DroneControl/training_data")
     episode += 1
 
     
