@@ -76,6 +76,7 @@ def sharedMemorySendPlay():
 
 #Send chosen action through shared memory
 def sharedMemorySend(action):
+    print("Action: " + str(action))
 
     # Open the shared memory
     memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
@@ -110,7 +111,7 @@ input_size = 5  # x and y positions
 output_size = 5  # Number of possible actions
 learning_rate = 0.1
 gamma = 0.95  # Discount factor
-epsilon = 1.0  # Exploration rate
+epsilon = 0.0  # Exploration rate
 epsilon_decay = 0.995
 min_epsilon = 0.01
 memory_size = 10000  # Replay memory size
@@ -212,7 +213,7 @@ class Environment:
             done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
             time.sleep(0.05)
 
-
+        print("\nposX: " + str(X_pos) + "\nposY: " + str(Y_pos) + "\nYaw: " + str(posYaw) + "\nvelX: " + str(X_vel) + "\nvelY: " + str(Y_vel) + "\n")
         #print(done,X_pos,Y_pos)
 
 
@@ -220,8 +221,8 @@ class Environment:
 
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
-        a = 4
-        reward = 10 * math.exp(-a * distance_to_target)
+        a = 2
+        reward = 5 * math.exp(-a * distance_to_target) - 5
         if distance_to_target >= max_distance:
             reward = -10
 
