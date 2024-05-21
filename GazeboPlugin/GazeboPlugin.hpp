@@ -53,6 +53,7 @@ namespace gazebo
         gazebo::common::Time stepStartTime;
         char buffer[sizeof(SharedData)];
         bool aiConnected;
+        bool resetActive;
 
         SharedData* localData;
         SharedData* sharedData;
