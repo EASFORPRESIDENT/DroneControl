@@ -9,6 +9,9 @@
 #include <iostream>
 #include <cerrno>
 
+#include <cstdlib>
+#include <matplotlibcpp.h>
+
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/action/action.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
@@ -42,6 +45,7 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData, SharedDa
 bool offb_ctrl_body(mavsdk::Offboard& offboard, SharedData *sharedData, SharedData *boxdata);
 void action_translate(SharedData *sharedData,  SharedData *boxdata, Offboard::VelocityBodyYawspeed *velocity);
 void usage(const std::string& bin_name);
+void plot_pose_error(SharedData *sharedData, SharedData *boxdata);
 
 int main(int argc, char** argv) // To run: ./MainTest.out udp://:14540
 {
@@ -220,6 +224,7 @@ void custom_control(mavsdk::Offboard& offboard, SharedData *sharedData, SharedDa
         //std::cout << "Forward: " << velocity.forward_m_s << "   Right: " << velocity.right_m_s << "   Down: " << velocity.down_m_s << "\n";
         //RunLoop = sharedData->Runloop;
         offboard.set_velocity_body(velocity);
+        plot_pose_error(sharedData, boxdata);  // plot absolute error between drone and box from X and Y coordinates}
         sleep_for(milliseconds(10));
     }
 
@@ -315,4 +320,101 @@ void action_translate(SharedData *sharedData, SharedData *boxdata, Offboard::Vel
     velocity->right_m_s = control_y;
     velocity->yawspeed_deg_s = control_yaw;
 }
+
+
+
+
+namespace plt = matplotlibcpp;
+
+// Shared data and synchronization primitives
+static std::vector<float> x_values;
+static std::vector<float> y_values;
+std::mutex data_mutex;
+bool data_updated = false;
+std::thread plot_thread;
+bool plot_thread_started = false;
+bool plot_thread_running = true; // Control the running state of the plot thread
+
+// Function to plot the graph
+void plot_graph() {
+    while (plot_thread_running) {
+        {
+            std::lock_guard<std::mutex> guard(data_mutex);
+            if (data_updated) {
+                // Clear previous plot
+                plt::clf();
+
+                // Plot the updated data
+                plt::plot(x_values, y_values);
+                plt::title("Sample Plot");
+                plt::xlabel("Time");
+                plt::ylabel("Error");
+                
+
+                // Show the plot (non-blocking)
+                plt::pause(0.01);  // A small pause to allow the plot to update
+
+                data_updated = false;
+            }
+        }
+
+        // Sleep for a short duration to reduce CPU usage
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+void start_plot_thread() {
+    if (!plot_thread_started) {
+        plot_thread = std::thread(plot_graph);
+        plot_thread_started = true;
+    }
+}
+
+void stop_plot_thread() {
+    if (plot_thread_started) {
+        plot_thread_running = false;
+        if (plot_thread.joinable()) {
+            plot_thread.join();
+        }
+    }
+}
+
+
+void plot_pose_error(SharedData *sharedData, SharedData *boxdata) {
+    static int counter = 0;
+    static float time = 1;
+
+    if(!plot_thread_started) {
+        start_plot_thread();
+    }
+
+    if (counter == 10) // Update the plot every 10 iterations
+    {
+        float error_x = std::abs(sharedData->posX - boxdata->posX);
+        float error_y = std::abs(sharedData->posY - boxdata->posY);
+        float norm = std::sqrt(std::pow(error_x, 2) + std::pow(error_y, 2));
+
+        {
+            std::lock_guard<std::mutex> guard(data_mutex);
+            x_values.push_back(time);
+            y_values.push_back(norm);
+            data_updated = true;
+        }
+
+        time = time + 0.1;
+        counter = 0;
+    }
+
+    counter++;
+}
+
+
+
+
+
+
+
+
+
+
 //testing
