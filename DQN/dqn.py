@@ -112,7 +112,7 @@ input_size = 5  # x and y positions
 output_size = 5  # Number of possible actions
 learning_rate = 0.1
 gamma = 0.95  # Discount factor
-epsilon = 1.0  # Exploration rate
+epsilon = 1  # Exploration rate
 epsilon_decay = 0.9999
 min_epsilon = 0.01
 memory_size = 1000000  # Replay memory size
@@ -252,7 +252,7 @@ class Environment:
         distance_to_target = np.sqrt(X_pos**2+Y_pos**2)
 
         a = 2
-        reward = 5 * math.exp(-a * distance_to_target) - 5
+        reward = 10 * math.exp(-a * distance_to_target)
         if distance_to_target >= max_distance:
             reward = -10
 
@@ -278,7 +278,7 @@ agent = DQNAgent()
 print("Booting AI model...")
 #agent.load_memory("training_data.pkl") #tempmem
 #agent = DQNAgent() #tempmem
-agent.load("/home/andreas/DroneControl/training_data")  # Load training data if exists tempmem
+agent.load("/home/andreas/DroneControl/DQN/training_data")  # Load training data if exists tempmem
 # Check if the model is loaded successfully
 print("Model loaded successfully.")
 
@@ -292,10 +292,12 @@ for name, param in agent.model.named_parameters():
 save_interval = 100 #tempmem
 # Assuming you have an environment with x, y, and z positions
 episode_rewards = [] #defining list for ploting
-num_episodes = 1000
+num_episodes = 20000
 #for episode in range(num_episodes):
 episode = 0
-while True:
+best_result = 0
+epsilon = 1 
+while episode < num_episodes:
     nm_of_steps = 0
     state = env.reset()
     total_reward = 0
@@ -308,7 +310,7 @@ while True:
 
         #send action to MAVsdk script through open memory
         sharedMemorySend(action)
-
+        sharedMemorySendPlay()
         next_state, reward, done, _ = env.step(action,nm_of_steps)
 
         agent.remember(state, action, reward, next_state, done)
@@ -317,24 +319,31 @@ while True:
         agent.replay()
         nm_of_steps = nm_of_steps + 1
 
-        sharedMemorySendPlay()
+
     # Append total reward for this episode to episode_rewards list for ploting
     episode_rewards.append(total_reward)
+    
+    if episode % 50 == 0:
+        agent.update_target_network()
 
-    agent.update_target_network()
+
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
     print(f"Episode: {episode+1}, Total Reward: {total_reward}")
     #agent.save_memory("training_data.pkl")#tempmem
     if (episode + 1) % save_interval == 0:
-        agent.save("/home/andreas/DroneControl/training_data")
+        agent.save("/home/andreas/DroneControl/DQN/training_data")
+
+
     episode += 1
+    if total_reward > best_result:
+        agent.save("/home/andreas/DroneControl/DQN/Best_result/training_data")
 
     
-    if episode > 1000:
-        episode = 0
-        epsilon = 1
+    #if episode > 1000:
+    #    episode = 0
+    #    epsilon = 1
     # Plotting
-    if episode % 2 == 0:
+    if episode % 100 == 0:
 
         plt.figure(1)
         training_reward = torch.tensor(episode_rewards, dtype=torch.float)
@@ -357,6 +366,8 @@ while True:
         plt.pause(0.002)  # pause a bit so that plots are updated
 
         display.display(plt.gcf())
+
+        plt.savefig(f'/home/andreas/DroneControl/training_reward_episode.png')
 
 
 

@@ -48,9 +48,10 @@ namespace gazebo
         static int count = 0;
         if (++count > 150)
         {           
-
+            resetActive = false;
             if (CheckReset())
             {
+                resetActive = true;
                 ResetWorld();
             }
 
@@ -125,10 +126,10 @@ namespace gazebo
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis(-1.5, 1.5);
 
-        //double x = dis(gen);
-        double x = 1;
-        //double y = dis(gen);
-        double y = 1;
+        double x = dis(gen);
+        //double x = 1;
+        double y = dis(gen);
+        //double y = 1;
         double z = 10; // Altitude
 
         return ignition::math::Pose3d(x, y, z, 0, 0, 0);
@@ -144,12 +145,24 @@ namespace gazebo
 
     void SimulationResetPlugin::UpdateVelocity()
     {
-        auto currentTime = this->world.get()->SimTime();
-        auto deltaTime = (currentTime - prevTime).Double();
-        localData->velX = (localData->posX - prevDronePose.X()) / deltaTime;
-        localData->velY = (localData->posY - prevDronePose.Y()) / deltaTime;
-        localData->velZ = (localData->posZ - prevDronePose.Z()) / deltaTime;
-        localData->velYaw = (localData->posX - prevDronePose.Yaw()) / deltaTime;
+        if (!resetActive)
+        {
+            auto currentTime = this->world.get()->SimTime();
+            auto deltaTime = (currentTime - prevTime).Double();
+            localData->velX = (localData->posX - prevDronePose.X()) / deltaTime;
+            localData->velY = (localData->posY - prevDronePose.Y()) / deltaTime;
+            localData->velZ = (localData->posZ - prevDronePose.Z()) / deltaTime;
+            localData->velYaw = (localData->posX - prevDronePose.Yaw()) / deltaTime;
+        }
+        else
+        {
+            localData->velX = 0.0f;
+            localData->velY = 0.0f;
+            localData->velZ = 0.0f;
+            localData->velYaw = 0.0f;
+        }
+        
+        
     }
 
     void SimulationResetPlugin::SendSharedData()
