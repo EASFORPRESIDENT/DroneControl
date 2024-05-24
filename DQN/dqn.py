@@ -323,7 +323,7 @@ while episode < num_episodes:
     state = env.reset()
     total_reward = 0
     done = False
-    episode_trajectory = []  # Trajectory for the current episode
+    #episode_trajectory = []  # Trajectory for the current episode
 
     while not done:
         action = agent.select_action(state) # Select Action
@@ -332,7 +332,7 @@ while episode < num_episodes:
         next_state, reward, done, _ = env.step(action,nm_of_steps) # Get new state and reward
 
         agent.remember(state, action, reward, next_state, done)
-        episode_trajectory.append(state)
+        #episode_trajectory.append(state)
         state = next_state
         total_reward += reward
         agent.replay()
