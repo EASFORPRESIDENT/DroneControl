@@ -58,7 +58,10 @@ namespace gazebo
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
 
             UpdateDronePose(dronePose);
-            UpdateVelocity();
+            if (!resetActive)
+            {
+                UpdateVelocity();
+            }
             SendSharedData();
 
             prevDronePose = dronePose;
@@ -145,23 +148,13 @@ namespace gazebo
 
     void SimulationResetPlugin::UpdateVelocity()
     {
-        if (!resetActive)
-        {
-            auto currentTime = this->world.get()->SimTime();
-            auto deltaTime = (currentTime - prevTime).Double();
-            localData->velX = (localData->posX - prevDronePose.X()) / deltaTime;
-            localData->velY = (localData->posY - prevDronePose.Y()) / deltaTime;
-            localData->velZ = (localData->posZ - prevDronePose.Z()) / deltaTime;
-            localData->velYaw = (localData->posX - prevDronePose.Yaw()) / deltaTime;
-        }
-        else
-        {
-            localData->velX = 0.0f;
-            localData->velY = 0.0f;
-            localData->velZ = 0.0f;
-            localData->velYaw = 0.0f;
-        }
         
+        auto currentTime = this->world.get()->SimTime();
+        auto deltaTime = (currentTime - prevTime).Double();
+        localData->velX = (localData->posX - prevDronePose.X()) / deltaTime;
+        localData->velY = (localData->posY - prevDronePose.Y()) / deltaTime;
+        localData->velZ = (localData->posZ - prevDronePose.Z()) / deltaTime;
+        localData->velYaw = (localData->posX - prevDronePose.Yaw()) / deltaTime;
         
     }
 
