@@ -46,7 +46,7 @@ namespace gazebo
     void SimulationResetPlugin::OnUpdate()
     {
         static int count = 0;
-        if (++count > 150)
+        if (++count > 150) // Needed, otherwise it would not start. Too much processing maybe?
         {           
             resetActive = false;
             if (CheckReset())
@@ -57,7 +57,7 @@ namespace gazebo
 
             dronePose = this->world->ModelByName("iris").get()->WorldPose();
 
-            SetDronePosition(dronePose);
+            UpdateDronePose(dronePose);
             UpdateVelocity();
             SendSharedData();
 
@@ -135,7 +135,7 @@ namespace gazebo
         return ignition::math::Pose3d(x, y, z, 0, 0, 0);
     }
 
-    void SimulationResetPlugin::SetDronePosition(ignition::math::Pose3d position)
+    void SimulationResetPlugin::UpdateDronePose(ignition::math::Pose3d position)
     {
         localData->posX = position.X();
         localData->posY = position.Y();

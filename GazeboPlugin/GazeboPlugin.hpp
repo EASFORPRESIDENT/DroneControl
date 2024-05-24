@@ -68,7 +68,7 @@ namespace gazebo
 
         void PauseWorld();
         void SerializeSharedData(const SharedData& data, char* buffer);
-        void SetDronePosition(ignition::math::Pose3d position);
+        void UpdateDronePose(ignition::math::Pose3d position);
         void UpdateVelocity();
         void SendSharedData();
         bool CheckReset();
