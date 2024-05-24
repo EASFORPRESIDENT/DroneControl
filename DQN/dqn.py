@@ -22,7 +22,7 @@ memory_send = "/droneAction"
 memory_size = 1024
 RunLoop = True
 
-visualize_interval = 10000  # Visualize trajectories every 100 episodes,
+#visualize_interval = 10000  # Visualize trajectories every 100 episodes,
 #Receive position of drone through shared memory
 def sharedMemoryReceive():
     # Open the shared memory
@@ -96,28 +96,28 @@ def sharedMemorySend(action):
     memory_s.close_fd()
 
 # Define a function to visualize trajectories
-def visualize_trajectories(trajectories):
-    """
-    Visualize agent trajectories in the state space.
+#def visualize_trajectories(trajectories):
+  #  """
+  #  Visualize agent trajectories in the state space.
 
-    Args:
-        trajectories (list of lists): List of trajectories, where each trajectory is a list of states.
-    """
+  #  Args:
+    #    trajectories (list of lists): List of trajectories, where each trajectory is a list of states.
+    #"""
     #plt.figure(figsize=(8, 6))
-    plt.figure(1)
-    plt.clf()  # Clear the previous plot
-    for trajectory in trajectories:
-        x = [state[0] for state in trajectory]  # Extract x-coordinate from each state
-        y = [state[1] for state in trajectory]  # Extract y-coordinate from each state
-        plt.scatter(x, y, marker='o', s=10)  # Plot points
+    #plt.figure(1)
+    #plt.clf()  # Clear the previous plot
+    #for trajectory in trajectories:
+     #   x = [state[0] for state in trajectory]  # Extract x-coordinate from each state
+      #  y = [state[1] for state in trajectory]  # Extract y-coordinate from each state
+      #  plt.scatter(x, y, marker='o', s=10)  # Plot points
         #plt.plot(x, y, marker='o', markersize=4)  # Plot trajectory
-    plt.xlabel('X-coordinate')
-    plt.ylabel('Y-coordinate')
-    plt.title('Agent Trajectories')
-    plt.grid(True)
+    #plt.xlabel('X-coordinate')
+    #plt.ylabel('Y-coordinate')
+    #plt.title('Agent Trajectories')
+    #plt.grid(True)
     #plt.show()
-    plt.draw()
-    plt.pause(0.001) 
+    #plt.draw()
+    #plt.pause(0.001) 
 
 class DQN(nn.Module):
     def __init__(self, input_size, output_size):
@@ -312,7 +312,7 @@ for name, param in agent.model.named_parameters():
 save_interval = 100 #tempmem
 # Assuming you have an environment with x, y, and z positions
 episode_rewards = [] #defining list for ploting
-trajectories = []  # List to store trajectories
+#trajectories = []  # List to store trajectories
 num_episodes = 20000
 #for episode in range(num_episodes):
 episode = 0
@@ -341,7 +341,7 @@ while episode < num_episodes:
         sharedMemorySendPlay()
     # Append total reward for this episode to episode_rewards list for ploting
     episode_rewards.append(total_reward)
-    trajectories.append(episode_trajectory)
+    #trajectories.append(episode_trajectory)
     
     if episode % 50 == 0:
         agent.update_target_network()
@@ -353,8 +353,8 @@ while episode < num_episodes:
     if (episode + 1) % save_interval == 0:
         agent.save("/home/andreas/DroneControl/DQN/training_data")
      # Visualize trajectories periodically
-    if (episode + 1) % visualize_interval == 0:
-        visualize_trajectories(trajectories)
+    #if (episode + 1) % visualize_interval == 0:
+    #    visualize_trajectories(trajectories)
 
 
     episode += 1
@@ -394,7 +394,7 @@ while episode < num_episodes:
         plt.savefig(f'/home/andreas/DroneControl/training_reward_episode.png')
 
     # Visualize all trajectories after training
-    visualize_trajectories(trajectories)
+    #visualize_trajectories(trajectories)
 
 RunLoop = False
 sharedMemorySend(0)
