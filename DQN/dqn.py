@@ -13,17 +13,21 @@ from IPython import display
 import math
 import os
 
+# Enable interactive mode
+plt.ion()
+
 # Memory name (should match with C++ code)
 memory_name = "/dronePoseAndReset"
 memory_send = "/droneAction"
 memory_size = 1024
 RunLoop = True
 
+visualize_interval = 10000  # Visualize trajectories every 100 episodes,
 #Receive position of drone through shared memory
 def sharedMemoryReceive():
     # Open the shared memory
     memory = posix_ipc.SharedMemory(memory_name, flags=posix_ipc.O_RDWR)
-
+ 
     # Map the shared memory into the address space
     mapped_memory = mmap.mmap(memory.fd, memory.size)
 
@@ -77,7 +81,6 @@ def sharedMemorySendPlay():
 
 #Send chosen action through shared memory
 def sharedMemorySend(action):
-    print("Action: " + str(action))
 
     # Open the shared memory
     memory_s = posix_ipc.SharedMemory(memory_send, flags=posix_ipc.O_RDWR)
@@ -91,6 +94,30 @@ def sharedMemorySend(action):
   # Clean up resources when done
     mapped_send.close()
     memory_s.close_fd()
+
+# Define a function to visualize trajectories
+def visualize_trajectories(trajectories):
+    """
+    Visualize agent trajectories in the state space.
+
+    Args:
+        trajectories (list of lists): List of trajectories, where each trajectory is a list of states.
+    """
+    #plt.figure(figsize=(8, 6))
+    plt.figure(1)
+    plt.clf()  # Clear the previous plot
+    for trajectory in trajectories:
+        x = [state[0] for state in trajectory]  # Extract x-coordinate from each state
+        y = [state[1] for state in trajectory]  # Extract y-coordinate from each state
+        plt.scatter(x, y, marker='o', s=10)  # Plot points
+        #plt.plot(x, y, marker='o', markersize=4)  # Plot trajectory
+    plt.xlabel('X-coordinate')
+    plt.ylabel('Y-coordinate')
+    plt.title('Agent Trajectories')
+    plt.grid(True)
+    #plt.show()
+    plt.draw()
+    plt.pause(0.001) 
 
 class DQN(nn.Module):
     def __init__(self, input_size, output_size):
@@ -220,7 +247,6 @@ class Environment:
         X_pos = 0
         Y_pos = 0
 
-
     def reset(self):
         print("Reseting...")
         reset = 1
@@ -233,8 +259,6 @@ class Environment:
             time.sleep(0.01)
         return X_pos, Y_pos, posYaw, X_vel, Y_vel
 
-
-
     def step(self, action, steps):
 
         #receive from open memory
@@ -243,9 +267,8 @@ class Environment:
             done, play, X_pos, Y_pos, posYaw, Z_pos ,X_vel, Y_vel, Z_vel, Yaw_vel= sharedMemoryReceive()
             time.sleep(0.01)
 
-        print("\nposX: " + str(X_pos) + "\nposY: " + str(Y_pos) + "\nYaw: " + str(posYaw) + "\nvelX: " + str(X_vel) + "\nvelY: " + str(Y_vel) + "\n")
-        #print(done,X_pos,Y_pos)
-
+        print("Action: " + str(action))
+        print("\nposX: " + str(X_pos) + "\nposY: " + str(Y_pos) + "\nYaw: " + str(posYaw) + "\nvelX: " + str(X_vel) + "\nvelY: " + str(Y_vel) + "\nDistance: " "\n")
 
         next_state = X_pos, Y_pos, posYaw, X_vel, Y_vel
 
@@ -256,11 +279,8 @@ class Environment:
         if distance_to_target >= max_distance:
             reward = -10
 
+
         #reward =  max(0, 1 - distance_to_target / max_distance)
-
-        #reward_two = max(0,1 - abs((10-posZ))/5)
-
-        #reward = 0.7*reward_one #+ 0.3*reward_two
 
         if distance_to_target >= max_distance or steps >= max_steps:
             done =  1 
@@ -292,6 +312,7 @@ for name, param in agent.model.named_parameters():
 save_interval = 100 #tempmem
 # Assuming you have an environment with x, y, and z positions
 episode_rewards = [] #defining list for ploting
+trajectories = []  # List to store trajectories
 num_episodes = 20000
 #for episode in range(num_episodes):
 episode = 0
@@ -302,26 +323,25 @@ while episode < num_episodes:
     state = env.reset()
     total_reward = 0
     done = False
+    episode_trajectory = []  # Trajectory for the current episode
 
     while not done:
-        action = agent.select_action(state)
-        #print(action)
-
-
-        #send action to MAVsdk script through open memory
-        sharedMemorySend(action)
-        sharedMemorySendPlay()
-        next_state, reward, done, _ = env.step(action,nm_of_steps)
+        action = agent.select_action(state) # Select Action
+        sharedMemorySend(action) # Send action
+        sharedMemorySendPlay() # Wait for Gazebo to simulate step        sharedMemorySendPlay()
+        next_state, reward, done, _ = env.step(action,nm_of_steps) # Get new state and reward
 
         agent.remember(state, action, reward, next_state, done)
+        episode_trajectory.append(state)
         state = next_state
         total_reward += reward
         agent.replay()
         nm_of_steps = nm_of_steps + 1
 
-
+        sharedMemorySendPlay()
     # Append total reward for this episode to episode_rewards list for ploting
     episode_rewards.append(total_reward)
+    trajectories.append(episode_trajectory)
     
     if episode % 50 == 0:
         agent.update_target_network()
@@ -332,6 +352,9 @@ while episode < num_episodes:
     #agent.save_memory("training_data.pkl")#tempmem
     if (episode + 1) % save_interval == 0:
         agent.save("/home/andreas/DroneControl/DQN/training_data")
+     # Visualize trajectories periodically
+    if (episode + 1) % visualize_interval == 0:
+        visualize_trajectories(trajectories)
 
 
     episode += 1
@@ -345,7 +368,8 @@ while episode < num_episodes:
     # Plotting
     if episode % 100 == 0:
 
-        plt.figure(1)
+        plt.figure(2)
+        plt.clf()  # Clear the previous plot
         training_reward = torch.tensor(episode_rewards, dtype=torch.float)
         if True:
             plt.title('Result')
@@ -369,7 +393,8 @@ while episode < num_episodes:
 
         plt.savefig(f'/home/andreas/DroneControl/training_reward_episode.png')
 
-
+    # Visualize all trajectories after training
+    visualize_trajectories(trajectories)
 
 RunLoop = False
 sharedMemorySend(0)
