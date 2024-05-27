@@ -347,8 +347,8 @@ void plot_graph() {
                 // Plot the updated data
                 plt::plot(x_values, y_values);
                 plt::title("Sample Plot");
-                plt::xlabel("Time");
-                plt::ylabel("Error");
+                plt::xlabel("Time (s)");
+                plt::ylabel("Error (m)");
                 
 
                 // Show the plot (non-blocking)
